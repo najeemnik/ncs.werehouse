@@ -27,7 +27,7 @@ defined('APP_BRAND_NAME_FA') or define('APP_BRAND_NAME_FA', 'حسابداری ه
 defined('APP_BRAND_LOGO') or define('APP_BRAND_LOGO', 'branding/nik-smart-count-logo.png');
 defined('APP_BRAND_MARK') or define('APP_BRAND_MARK', 'branding/nik-smart-count-mark.png');
 defined('APP_BRAND_SIGNATURE') or define('APP_BRAND_SIGNATURE', 'branding/nik-signature-ahmad-najeem-nik.png');
-defined('APP_VERSION') or define('APP_VERSION', '2.3.3');
+defined('APP_VERSION') or define('APP_VERSION', '2.3.7');
 // Legacy sentinel only: a saved shop name equal to this value is treated as "not customised".
 // Existing businesses keep their saved name; the public/default brand is APP_BRAND_NAME.
 defined('DEFAULT_SHOP_NAME') or define('DEFAULT_SHOP_NAME', 'فروشگاه ضیا');

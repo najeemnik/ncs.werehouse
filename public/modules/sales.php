@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $customerPhone = pos_text_value('customer_phone');
         $paymentType   = pos_text_value('payment_type','نقد');
         $paymentType=['cash'=>'نقد','credit'=>'قرض','installment'=>'قسط وار'][$paymentType]??$paymentType;
-        $paidAmount    = (float)clean_number($_POST['paid_amount'] ?? '0', true);
+        $paidAmount    = dec_round($_POST['paid_amount'] ?? '0');
         $notes         = pos_text_value('notes');
         $itemsJson     = $_POST['items_json'] ?? '';
 
@@ -54,7 +54,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $error = 'حداکثر تعداد اقلام مجاز در یک بل ۳۰ قلم می‌باشد.';
         } else {
             try {
+                $saleRequestKey=sale_request_key(pos_text_value('sale_request_key'));
+                $saleContentHash=sale_request_hash([
+                    'invoice_no'=>$invoiceNo,'customer_name'=>$customerName,'customer_phone'=>$customerPhone,
+                    'payment_type'=>$paymentType,'paid_amount'=>$paidAmount,'notes'=>$notes,'items'=>$items,
+                    'currency'=>$currencyContext['code'],'payment_currency'=>pos_text_value('payment_currency_code',$currencyContext['code']),
+                    'cash_account'=>pos_text_value('cash_account_id'),'design_revision'=>$invoiceDesignRevision
+                ]);
+                if($existingSale=sale_request_existing(shop_id(),$saleRequestKey,$saleContentHash))redirect(BASE_URL.'print/invoice.php?id='.$existingSale);
                 $pdo->beginTransaction();
+                if($existingSale=sale_request_existing(shop_id(),$saleRequestKey,$saleContentHash,true)){$pdo->rollBack();redirect(BASE_URL.'print/invoice.php?id='.$existingSale);}
 
                 $grandTotal = '0.00';
                 $grandProfit = '0.00'; $profitKnown=true;
@@ -102,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     $paidAmount = $grandTotal;
                     $remainingAmount = 0.0;
                 } else {
-                    if ($paidAmount > $grandTotal) {
+                    if (dec_units($paidAmount) > dec_units($grandTotal)) {
                         throw new InvalidArgumentException(__t('The received amount exceeds the invoice total. Check the amount before completing the sale.','مبلغ دریافت‌شده از مجموع بل بیشتر است؛ پیش از تکمیل فروش مبلغ را بررسی کنید.','ترلاسه شوې اندازه د بل له ټول څخه ډېره ده؛ اندازه وګورئ.'));
                     }
                     $remainingAmount = dec_sub($grandTotal,$paidAmount);
@@ -114,10 +123,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $exactNow = date('Y-m-d H:i:s');
 
                 // 1. Insert master sales record with exact timestamp
-                $saleStmt = $pdo->prepare("INSERT INTO sales 
-                    (invoice_no, customer_name, customer_phone, total_amount, paid_amount, remaining_amount, profit, payment_type, notes, created_by, created_at, shop_id) 
-                    VALUES (:inv, :cname, :cphone, :tot, :paid, :rem, :prof, :ptype, :notes, :uid, :cdate, " . shop_id() . ")");
-                
+                $saleStmt = $pdo->prepare("INSERT INTO sales
+                    (invoice_no, customer_name, customer_phone, total_amount, paid_amount, remaining_amount, profit, payment_type, notes, created_by, created_at, shop_id, sale_request_key, sale_content_hash)
+                    VALUES (:inv, :cname, :cphone, :tot, :paid, :rem, :prof, :ptype, :notes, :uid, :cdate, " . shop_id() . ", :request_key, :content_hash)");
+
                 $saleStmt->execute([
                     ':inv'   => $invoiceNo,
                     ':cname' => $customerName,
@@ -129,14 +138,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     ':ptype' => $paymentType,
                     ':notes' => $notes,
                     ':uid'   => $currentUser['id'],
-                    ':cdate' => $exactNow
+                    ':cdate' => $exactNow,
+                    ':request_key' => $saleRequestKey,
+                    ':content_hash' => $saleContentHash
                 ]);
 
                 $saleId = $pdo->lastInsertId();
                 $pdo->prepare('UPDATE sales SET invoice_snapshot=?,verification_nonce=? WHERE id=? AND shop_id=?')->execute([json_encode($invoiceSnapshot,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),bin2hex(random_bytes(16)),$saleId,shop_id()]);
 
                 // 2. Insert items and decrement stock
-                $insItemStmt = $pdo->prepare("INSERT INTO sale_items 
+                $insItemStmt = $pdo->prepare("INSERT INTO sale_items
                     (sale_id, stock_id, product_name, specifications, quantity, unit_purchase_price, unit_expense, unit_sale_price, total_price, profit, unit, cost_amount, cost_currency_code, profit_known, invoice_fields, shop_id)
                     VALUES (:sid, :stock_id, :pname, :specs, :qty, :buy, :exp, :sprice, :tot, :prof, :unit, :cost, :cost_currency, :known, :invoice_fields, " . shop_id() . ")");
 
@@ -174,8 +185,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         $mudCheck->execute([':id' => $pItem['stock_id']]);
                         $linkedMudarabaId = $mudCheck->fetchColumn();
                         if ($linkedMudarabaId) {
-                            $updMud = $pdo->prepare("UPDATE mudaraba_contracts 
-                                SET total_sales_amount = total_sales_amount + :sales, 
+                            $updMud = $pdo->prepare("UPDATE mudaraba_contracts
+                                SET total_sales_amount = total_sales_amount + :sales,
                                     total_profit_amount = total_profit_amount + :profit,
                                     profit_known = CASE WHEN :known = 0 THEN 0 ELSE profit_known END
                                 WHERE id = :mid AND currency_code = :code AND " . shop_sql());
@@ -192,10 +203,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
                 // 3. Create debt if customer has remaining balance
                 if ($remainingAmount > 0) {
-                    $debtStmt = $pdo->prepare("INSERT INTO debts 
-                        (sale_id, customer_name, customer_phone, total_amount, paid_amount, remaining_amount, status, notes, debt_type, person_type, created_at, shop_id) 
+                    $debtStmt = $pdo->prepare("INSERT INTO debts
+                        (sale_id, customer_name, customer_phone, total_amount, paid_amount, remaining_amount, status, notes, debt_type, person_type, created_at, shop_id)
                         VALUES (:sid, :cname, :cphone, :tot, :paid, :rem, 'باز', :notes, 'receivable', 'customer', :cdate, " . shop_id() . ")");
-                    
+
                     $debtStmt->execute([
                         ':sid'    => $saleId,
                         ':cname'  => $customerName,
@@ -211,8 +222,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     currency_record('debts',$debtId,$currencyContext,['total_amount'=>$grandTotal,'paid_amount'=>$paidAmount,'remaining_amount'=>$remainingAmount],'create',['total_amount'=>$originalTotal,'paid_amount'=>$originalPaid,'remaining_amount'=>$originalRemaining]);
 
                     if ($receivedAmount > 0) {
-                        $instStmt = $pdo->prepare("INSERT INTO installments 
-                            (debt_id, amount, payment_date, notes, created_by, shop_id) 
+                        $instStmt = $pdo->prepare("INSERT INTO installments
+                            (debt_id, amount, payment_date, notes, created_by, shop_id)
                             VALUES (:did, :amt, :pdate, :notes, :uid, " . shop_id() . ")");
                         $instStmt->execute([
                             ':did'   => $debtId,
@@ -235,6 +246,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 redirect(BASE_URL . "print/invoice.php?id={$saleId}");
             } catch (Exception $e) {
                 if($pdo->inTransaction()) $pdo->rollBack();
+                // A concurrent retry may have committed the identical invoice after our unique-key check.
+                if($e instanceof PDOException&&isset($saleRequestKey,$saleContentHash)&&($existingSale=sale_request_existing(shop_id(),$saleRequestKey,$saleContentHash)))redirect(BASE_URL.'print/invoice.php?id='.$existingSale);
                 $error = __t('Sale could not be saved: ','فروش ذخیره نشد: ','پلور خوندي نه شو: ') . public_error($e);
             }
         }
@@ -243,10 +256,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 // Fetch all in-stock products for the fast live search engine
 $allStockProducts = $pdo->query("SELECT s.id, s.name, s.unit, s.sku, s.currency_code, s.sale_currency_code, s.inventory_value, s.barcode, s.specifications, (s.quantity-s.reserved_qty) AS quantity, s.sale_price, s.purchase_price, s.expenses, s.mudaraba_id, m.partner_name as mudaraba_partner_name, c.name as category_name
-                                  FROM stock s 
-                                  LEFT JOIN categories c ON s.category_id = c.id 
-                                  LEFT JOIN mudaraba_contracts m ON s.mudaraba_id = m.id 
-                                  WHERE s.quantity > 0 AND ".shop_sql('s')." 
+                                  FROM stock s
+                                  LEFT JOIN categories c ON s.category_id = c.id
+                                  LEFT JOIN mudaraba_contracts m ON s.mudaraba_id = m.id
+                                  WHERE s.quantity > 0 AND ".shop_sql('s')."
                                   ORDER BY s.name ASC")->fetchAll();
 
 $isProfitSpecsLocked = is_feature_locked('preview_profit_specs');
@@ -286,40 +299,41 @@ require_once __DIR__ . '/../includes/header.php';
 
             <?= csrf_field() ?><?php funds_select(); ?>
             <input type="hidden" name="action" value="create_sale">
+            <input type="hidden" name="sale_request_key" value="<?= sanitize(pos_text_value('sale_request_key',bin2hex(random_bytes(16)))) ?>">
             <?php currency_fields(['paid_amount'=>2]); ?>
             <input type="hidden" name="invoice_no" value="<?= sanitize($nextInvNo) ?>">
             <input type="hidden" id="items_json" name="items_json" value="[]">
             <input type="hidden" name="invoice_design_revision" value="<?= sanitize($invoiceDesignRevision) ?>">
 
             <!-- Customer Details Header (Standard Clean Inputs) -->
-            <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; margin-bottom: 16px;">
+            <div class="pos-customer-grid">
                 <div class="form-group">
                     <label class="form-label" for="customer_name"><?= __('buyer_name_label') ?></label>
-                    <input type="text" id="customer_name" name="customer_name" class="form-control" 
+                    <input type="text" id="customer_name" name="customer_name" class="form-control"
                            placeholder="<?= __('customer_name') ?>">
                 </div>
 
                 <div class="form-group">
                     <label class="form-label" for="customer_phone"><?= __('buyer_phone_label') ?></label>
-                    <input type="text" id="customer_phone" name="customer_phone" class="form-control numeric-input" 
+                    <input type="text" id="customer_phone" name="customer_phone" class="form-control numeric-input"
                            placeholder="07xxxxxxxx">
                 </div>
             </div>
 
             <!-- Fast Live Search Bar (Persian, English & Pashto) -->
             <div class="form-group" style="margin-bottom: 16px;">
-                <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+                <label class="form-label pos-search-label">
                     <span>
                         <i class="fa-solid fa-magnifying-glass ml-1" style="color: var(--info);"></i>
                         <strong><?= __('fast_search_label') ?></strong>
                     </span>
                     <span style="font-size: 11.5px; color: var(--text-muted);"><?= __('fast_search_sub') ?></span>
                 </label>
-                
+
                 <div class="pos-search-wrapper">
                     <div style="position: relative;">
-                        <input type="text" id="pos_search_input" class="form-control" 
-                               placeholder="<?= __('pos_search_placeholder') ?>" 
+                        <input type="text" id="pos_search_input" class="form-control"
+                               placeholder="<?= __('pos_search_placeholder') ?>"
                                autocomplete="off" style="padding-left: 36px; font-size: 14.5px; border: 2px solid #38bdf8;">
                         <i class="fa-solid fa-barcode" style="position: absolute; <?= $currentDir === 'rtl' ? 'left: 12px;' : 'right: 12px;' ?> top: 50%; transform: translateY(-50%); color: var(--text-light); font-size: 16px;"></i>
                     </div>
@@ -329,7 +343,7 @@ require_once __DIR__ . '/../includes/header.php';
             </div>
 
             <!-- Multi-Item Invoice Table (1 to 20+ items) -->
-            <div class="table-responsive" style="border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 16px; min-height: 180px; background: var(--surface);">
+            <div class="table-responsive pos-items-wrap">
                 <table class="pos-items-table" id="posTable">
                     <thead>
                         <tr>
@@ -344,7 +358,7 @@ require_once __DIR__ . '/../includes/header.php';
                     </thead>
                     <tbody id="posTableBody">
                         <tr id="emptyPosRow">
-                            <td colspan="7" style="text-align: center; padding: 36px 12px; color: var(--text-light);">
+<td colspan="7" class="pos-empty-cell">
                                 <i class="fa-solid fa-basket-shopping" style="font-size: 28px; margin-bottom: 8px; display: block; color: var(--border-dark);"></i>
                                 <?= __('empty_pos_notice') ?>
                             </td>
@@ -356,7 +370,7 @@ require_once __DIR__ . '/../includes/header.php';
             <!-- Additional Invoice Note -->
             <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label" for="notes"><?= __('invoice_notes_label') ?></label>
-                <input type="text" id="notes" name="notes" class="form-control" 
+                <input type="text" id="notes" name="notes" class="form-control"
                        placeholder="<?= __('description') ?>">
             </div>
     </div>
@@ -402,7 +416,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <!-- Paid Amount -->
                 <div class="form-group" id="paidAmountGroup" data-own-currency style="display: none;">
                     <label class="form-label" for="paid_amount"><?= sprintf(__('paid_cash_amount'), get_currency_label()) ?></label>
-                    <input type="text" id="paid_amount" name="paid_amount" class="form-control numeric-input" 
+                    <input type="text" id="paid_amount" name="paid_amount" class="form-control numeric-input"
                            placeholder="0" oninput="recalcTotals();">
                 </div>
 
@@ -492,6 +506,7 @@ var POS_DELETE_TITLE = <?= json_for_html(__('delete')) ?>;
 var POS_ALERT_MAX_STOCK = <?= json_for_html(__('max_stock_reached_alert')) ?>;
 var POS_ALERT_INSUFFICIENT = <?= json_for_html(__('insufficient_stock_alert')) ?>;
 var POS_CUSTOM_FIELDS = <?= json_for_html(array_map(fn($c)=>['id'=>$c['id'],'label'=>invoice_column_label($c),'required'=>$c['required']],$invoiceCustomColumns)) ?>;
+var POS_TD_LABELS = <?= json_for_html(['stock'=>__('pos_in_stock'),'quantity'=>__('quantity'),'price'=>sprintf(__('pos_unit_price'),get_currency_label()),'total'=>__('pos_total_price')]) ?>;
 var POS_ALERT_ADD_ITEM = <?= json_for_html(__('add_at_least_one_item_alert')) ?>;
 
 // DOM References
@@ -643,7 +658,7 @@ function updateItemPriceLive(index, val) {
 // Render Table Rows
 function renderInvoiceTable() {
     if (currentInvoiceItems.length === 0) {
-        tableBody.innerHTML = '<tr id="emptyPosRow"><td colspan="7" style="text-align: center; padding: 36px 12px; color: var(--text-light);"><i class="fa-solid fa-basket-shopping" style="font-size: 28px; margin-bottom: 8px; display: block; color: var(--border-dark);"></i>' + POS_EMPTY_TABLE + '</td></tr>';
+        tableBody.innerHTML = '<tr id="emptyPosRow"><td colspan="7" class="pos-empty-cell"><i class="fa-solid fa-basket-shopping"></i>' + POS_EMPTY_TABLE + '</td></tr>';
         recalcTotals();
         return;
     }
@@ -651,28 +666,28 @@ function renderInvoiceTable() {
     var rows = '';
     currentInvoiceItems.forEach(function(item, idx) {
         var lineTotal = item.qty * item.price;
-        rows += '<tr>' +
-                '  <td style="text-align: center; color: var(--text-muted); font-weight: 700;">' + (idx + 1) + '</td>' +
-                '  <td>' +
+        rows += '<tr class="pos-line">' +
+                '  <td class="pos-line-number">' + (idx + 1) + '</td>' +
+                '  <td class="pos-line-product">' +
                 '    <div style="font-weight: 700; color: var(--text-main); font-size: 13.5px;">' + escapeHtml(item.name) + '</div>' +
                 '    ' + (item.specs ? '<div style="font-size: 11px; color: var(--text-muted);">' + escapeHtml(item.specs) + '</div>' : '') +
                 posCustomInputs(item,idx) +
                 '  </td>' +
-                '  <td style="text-align: center;"><span class="badge badge-secondary" style="font-size: 11px;">' + item.stock_qty + ' ' + escapeHtml(item.unit) + '</span></td>' +
-                '  <td style="text-align: center;">' +
+                '  <td class="pos-line-stock" data-label="' + POS_TD_LABELS.stock + '"><span class="badge badge-secondary">' + item.stock_qty + ' ' + escapeHtml(item.unit) + '</span></td>' +
+                '  <td class="pos-line-quantity" data-label="' + POS_TD_LABELS.quantity + '">' +
                 '    <div style="display: inline-flex; align-items: center; gap: 4px;">' +
                 '      <button type="button" class="btn btn-sm btn-secondary" style="padding: 2px 8px;" onclick="updateItemQty(' + idx + ', ' + (item.qty - 1) + ');">-</button>' +
                 '      <input type="number" id="pos_qty_' + idx + '" class="pos-qty-input" value="' + item.qty + '" min="0.001" step="0.001" max="' + item.stock_qty + '" oninput="updateItemQty(' + idx + ', this.value);">' +
                 '      <button type="button" class="btn btn-sm btn-secondary" style="padding: 2px 8px;" onclick="updateItemQty(' + idx + ', ' + (item.qty + 1) + ');">+</button>' +
                 '    </div>' +
                 '  </td>' +
-                '  <td style="text-align: center;">' +
+                '  <td class="pos-line-price" data-label="' + POS_TD_LABELS.price + '">' +
                 '    <input type="number" step="any" min="0" id="pos_price_' + idx + '" class="form-control" style="width: 125px; display: inline-block; text-align: center; font-weight: 700; color: var(--text-main); padding: 6px 8px; border: 1.5px solid var(--text-light); border-radius: 6px;" value="' + (item.price > 0 ? item.price : '') + '" placeholder="' + POS_PRICE_PLACEHOLDER + '" oninput="updateItemPriceLive(' + idx + ', this.value);">' +
                 '  </td>' +
-                '  <td style="text-align: center; font-weight: 800; color: var(--info); font-size: 14px;" id="line_total_' + idx + '">' +
+                '  <td class="pos-line-total" data-label="' + POS_TD_LABELS.total + '" id="line_total_' + idx + '">' +
                 '    ' + formatNumber(lineTotal) +
                 '  </td>' +
-                '  <td style="text-align: center;">' +
+                '  <td class="pos-line-delete">' +
                 '    <button type="button" class="btn btn-sm btn-danger" style="padding: 4px 8px;" onclick="removeItemFromInvoice(' + idx + ');" title="' + POS_DELETE_TITLE + '">' +
                 '      <i class="fa-solid fa-trash-can"></i>' +
                 '    </button>' +

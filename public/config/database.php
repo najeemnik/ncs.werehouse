@@ -715,3 +715,6 @@ require_once __DIR__.'/../migrations/019_currency_collations.php';migrate_curren
 
 require_once __DIR__.'/../migrations/020_invoice_design.php';migrate_invoice_design($pdo);
 require_once __DIR__.'/../migrations/021_invoice_verification.php';migrate_invoice_verification($pdo);
+require_once __DIR__.'/../migrations/022_business_controls.php';migrate_business_controls($pdo);
+require_once __DIR__.'/../migrations/023_sale_idempotency.php';migrate_sale_idempotency($pdo);
+require_once __DIR__.'/../migrations/024_user_mfa.php';migrate_user_mfa($pdo);

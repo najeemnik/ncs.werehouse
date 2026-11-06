@@ -141,22 +141,11 @@ $shopFieldLabel = static function (string $key): array {
     <p class="office2-muted"><?= o2_label('Inherit uses the global licence and each user own permission. Allowed is an explicit permission for this shop, but it never overrides the global licence switch or a user personal restriction. Denied blocks the feature for this shop only.','«تلقّی از عمومی» از لایسنس عمومی و مجوز شخصی هر کاربر استفاده می‌کند؛ «مجاز» اجازهٔ صریح برای همین فروشگاه است اما هرگز قفل عمومی لایسنس یا محدودیت شخصی کاربر را باطل نمی‌کند؛ «مسدود» قابلیت را فقط برای همین فروشگاه می‌بندد.','«عمومي» د عمومي لایسنس او د هر کارن د خپلې اجازې کار اخلي؛ «اجازه» د دې دوکان لپاره صریحه اجازه ده خو عمومي لایسنس یا د کارن شخصي بندیز نه لرې کوي؛ «بند» امکان یوازې دې دوکان ته بندوي.') ?></p>
     <form method="post" class="office2-form">
         <?= csrf_field() ?><input type="hidden" name="action" value="save_shop_features"><input type="hidden" name="shop_id" value="<?= $sid ?>">
-        <div class="table-responsive"><table class="table office2-table"><thead><tr>
-            <th><?= o2_label('Feature','قابلیت','امکان') ?></th><th><?= o2_label('State for this shop','وضعیت این فروشگاه','د دې دوکان حالت') ?></th>
-        </tr></thead><tbody>
-        <?php foreach (get_lockable_features() as $fkey => $fmeta): $state = shop_feature_state($fkey, $sid); ?>
-            <tr>
-                <td><?= sanitize((string)($fmeta['title_fa'] ?? $fkey)) ?><br><small class="office2-muted"><?= sanitize($fkey) ?></small></td>
-                <td>
-                    <select class="form-control" name="features[<?= sanitize($fkey) ?>]">
-                        <option value="inherit" <?= $state === null ? 'selected' : '' ?>><?= o2_label('Inherit global','تلقّی از عمومی','عمومي') ?></option>
-                        <option value="1" <?= $state === 1 ? 'selected' : '' ?>><?= o2_label('Allowed','مجاز','اجازه') ?></option>
-                        <option value="0" <?= $state === 0 ? 'selected' : '' ?>><?= o2_label('Denied','مسدود','بند') ?></option>
-                    </select>
-                </td>
-            </tr>
-        <?php endforeach; ?>
-        </tbody></table></div>
+        <div class="office2-policy-groups"><?php $shopPermissionGroups=[];foreach(get_lockable_features() as $fkey=>$fmeta)$shopPermissionGroups[explode('.',domain_legacy_feature($fkey))[0]][$fkey]=$fmeta;foreach($shopPermissionGroups as $module=>$features): ?>
+        <details class="office2-policy-group" <?= $module==='dashboard'?'open':'' ?>><summary><span><i class="fa-solid fa-folder-open"></i> <?= sanitize(domain_label($module)) ?></span><span class="office2-badge"><?= count($features) ?></span></summary>
+        <div class="table-responsive"><table class="table office2-table"><thead><tr><th><?= o2_label('Feature','قابلیت','امکان') ?></th><th><?= o2_label('State for this shop','وضعیت این فروشگاه','د دې دوکان حالت') ?></th></tr></thead><tbody>
+        <?php foreach($features as $fkey=>$fmeta):$state=shop_feature_state($fkey,$sid); ?><tr><td><?= sanitize((string)($fmeta['title_fa']??$fkey)) ?><br><small class="office2-muted"><?= sanitize($fkey) ?></small></td><td><select class="form-control" name="features[<?= sanitize($fkey) ?>]"><option value="inherit" <?= $state===null?'selected':'' ?>><?= o2_label('Inherit global','تلقّی از عمومی','عمومي') ?></option><option value="1" <?= $state===1?'selected':'' ?>><?= o2_label('Allowed','مجاز','اجازه') ?></option><option value="0" <?= $state===0?'selected':'' ?>><?= o2_label('Denied','مسدود','بند') ?></option></select></td></tr><?php endforeach; ?>
+        </tbody></table></div></details><?php endforeach; ?></div>
         <?php o2_submit(o2_label('Save feature permissions','ذخیرهٔ مجوز قابلیت‌ها','د امکاناتو اجازه خوندي کړئ')); ?>
     </form>
 

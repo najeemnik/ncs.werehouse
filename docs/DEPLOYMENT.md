@@ -1,4 +1,4 @@
-# Installation, upgrade and integrations — 2.3.2
+# Installation, upgrade and integrations — 2.3.7
 
 Restricted hosts: [browser installation guide](SHARED_HOST_DA.md), [protected storage assumptions and later migration](SHARED_HOST_STORAGE.md). The default outside-root deployment below remains unchanged; protected in-root storage requires an explicit individual profile and owner-authorized HTTP-denial checks.
 
@@ -38,7 +38,15 @@ Migrations 007–019 preserve source business records. Existing shops remain sep
 
 Migration 009 rebuilds SQLite branch uniqueness transactionally. Migration 010 adds accounting and partial returns and rebuilds SQLite return uniqueness; MySQL DDL needs staging verification and an independent rollback backup. Migration 011 reserves new transfer requests; old pending requests are marked unreserved and recheck availability at receipt. Migration 012 adds retry-safe fund-account request keys. Historical movements, profits and cash are not silently reconstructed. Legacy debt/invoice settlement creates an explicit balance-opening adjustment, not fictional historical receipts.
 
-Backups currently require the same database driver and exact schema. Keep the matching application version and host DB backup for recovery across upgrades. Sequential migration tests passed; simultaneous first deployment and large live datasets have not been load-tested.
+Version 2.3.7 needs no database migration. It adds a shared presentation registry for grouped navigation/dashboard actions, independently permissioned dashboard panels and a friendly locked-service activation page. Update the supplied application files while preserving `config/hosting.php`, private storage, `.htaccess`, uploaded branding and the database. Existing policies remain valid; new dashboard-panel policies inherit their current defaults until changed. Review each central/owner dashboard group after updating.
+
+Version 2.3.6 adds migration 024 for hashed, browser-bound trusted-device tokens with fixed 30-day expiry. It does not replace users, passwords, Authenticator seeds or business records. Tenant users can enroll through Settings → Account security when permitted; employee access requires both central and owner approval. Office 2 → Users → Reset Authenticator removes a tenant user's lost-phone seed and trusted devices and revokes sessions. Existing databases must use the normal update path, not the fresh installer.
+
+Version 2.3.5 needs no additional migration beyond 022–023. Use **Owners, employees & permissions** for tenant account creation. Office 2 → Users → Business & assigned branch repairs an existing unassigned account after the correct branch is verified. Central quick presets establish ordinary tenant access; employee AI still requires separate owner approval. **Read-only user preview** is optional and is never the default login destination. It blocks POST changes and quota usage; use its exit button to return to the real central workspace.
+
+Migrations 022–023 run automatically through the normal application bootstrap after the source update. Migration 022 adds nullable business contact/subscription fields, status timestamps and zero-as-unlimited business-wide branch/staff ceilings. Migration 023 adds nullable POS request key/content hash columns and a unique branch/key index. Existing rows keep NULL request keys and existing financial values are not rewritten. The DB account needs ALTER/INDEX privileges for this one-time update. Confirm both versions appear in `schema_migrations`, then test one sale and a browser refresh/retry before resuming normal work.
+
+Backups currently require the same database driver and exact schema. Keep the matching application version and host DB backup for recovery across upgrades. Earlier sequential migrations were tested on MariaDB; the new 022/023 checks in this patch were SQLite/WASM only. Simultaneous first deployment and large live datasets have not been load-tested, so stage the MySQL ALTER/INDEX operations and retain an independent recovery backup.
 
 ## AI
 

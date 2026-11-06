@@ -1,8 +1,55 @@
-# Validation — 2.3.3 installer repair, 2026-11-06 (Asia/Kabul)
+# Validation — 2.3.7 unified service controls and responsive workspace, 2026-11-06 (Asia/Kabul)
 
+## Checks executed for 2.3.7
 
+Isolated PHP 8.4 WebAssembly/SQLite rendering tests verified the complete dashboard and sidebar, not only policy return values. With Reports hidden, no direct Reports link remained in either location. With Reports locked, the action targeted the activation page. Hidden dashboard cards emitted no markup; locked cards exposed neither their test value nor description. Office 2's dashboard control updated the same effective policy. Every registered navigation feature and target file was checked.
 
-## Checks for 2.3.3
+The real locked-service page returned HTTP 403 and rendered support telephone/WhatsApp actions, an isolated external link and a dashboard return instead of the former dead-end message. POS markup and CSS were checked for labelled mobile card rows, responsive customer fields and hidden desktop headers. The read-only preset retains visible dashboard cards while denying write actions. `business-controls`, `mfa`, `workspace` and `service-page` suites completed successfully.
+
+These are source-level rendering checks, not a real mobile-browser or live-host visual certification. Actual Safari/Chrome viewport checks remain necessary after deployment. No database migration is required for 2.3.7.
+
+## Checks executed for 2.3.6
+
+The new checks used isolated PHP 8.4 WebAssembly and SQLite, not the live host. All changed PHP files passed syntax checks and `git diff --check` passed. The `security` regression suite and new `mfa` suite completed successfully.
+
+- Tenant enrollment required a valid current six-digit code; a new session then required MFA.
+- A trusted cookie restored access without another code. The database contained only SHA-256 token/agent hashes, never the raw token.
+- The trusted-device expiry was approximately 2,592,000 seconds; an expired row and a changed browser agent were rejected, while the original agent was accepted.
+- Owner denial disabled employee MFA access, including an existing MFA session. An inactive employee could not use the service.
+- Server-side revocation invalidated the cookie. Central lost-phone recovery removed the tenant secret and every device.
+- Migration 024 was repeatable. The ordinary password/security page and password-change action retained their original permissions; only Authenticator mutations require `settings.mfa`.
+
+Real Apache/MariaDB, browser cookie behavior and HTTPS on the user's host remain deployment checks. No external Authenticator service is contacted: codes are generated and verified locally using RFC 6238.
+
+## Checks executed for 2.3.5
+
+The new checks again used isolated PHP 8.4.27 WebAssembly and SQLite, not the live Apache/MariaDB host. All 156 PHP files under `public/` and `tests/` passed syntax checks, and `git diff --check` passed.
+
+- Reproduced the account-design failure: the generic Office 2 form could create a tenant staff user with no business or branch, so dashboard authorization failed. That path now rejects unassigned tenant creation and directs the administrator to business-user management. Existing unassigned accounts can be explicitly assigned a branch from Office 2; no branch is guessed.
+- Created a full-permission business employee, signed in with the temporary password, completed the mandatory password change and opened the authorized dashboard. Central full-access setup enabled detailed sales/treasury permissions while a business-level lock still won.
+- The owner created two employees with different presets: full sales access and read-only access. Office 2 hidden mode hid the menu; locked mode kept it visible. The management screen rendered the quick presets, all three clear modes and user-preview links.
+- Four separate real preview requests verified the workspace banner and exit control, rejected a sale POST as read-only, stopped preview and restored the original central identity. No sale was inserted. Preview also left all request-allowance counters unchanged. An owner could not start central-only preview.
+- Regression suites `security`, `business-controls` and `staff-limits` completed after these changes. Previous suite results below remain historical and are not counted as rerun here.
+
+Preview is intentionally not impersonation for conducting business. It is an optional read-only inspection mode. The central account remains the authenticated actor, the target must be active and assigned to the selected branch, central MFA must remain valid, and normal permission checks still apply. No new database migration is required for 2.3.5.
+
+The actual ProFreeHost account, real browser, Apache/MariaDB and external services were not exercised. These results do not claim zero vulnerabilities or that every legacy unassigned account can be repaired automatically; an administrator must choose its correct business and branch.
+
+## Checks executed for 2.3.4
+
+These are new isolated **PHP 8.4.27 WebAssembly / SQLite** checks, not an Apache, MariaDB or ProFreeHost deployment test. The WASM runtime is an external test tool and is not bundled with the application.
+
+- All 152 PHP files under `public/` and `tests/` passed PHP 8.4 syntax checks.
+- `business-controls.php` passed: repeatable migrations 022/023, central contact/subscription/limit updates, zero-as-unlimited, owner denial for central controls, branch/staff ceilings, lock and expiry enforcement, branch-scoped sale keys, altered-content rejection and source guards for the two purchase dropdown queries and contract update. The central management screen was also rendered and checked for the real business-control form and selected-business invoice-design link.
+- The real POS handler was executed in four separate PHP requests: initial sale, identical retry, altered reuse and verification. The identical retry produced one invoice, one accounting document and one stock movement; quantity changed from 5 to 3 and inventory value from 50 to 30 exactly once. Reusing the key with an altered paid amount showed the explicit rejection and changed no recorded totals.
+- Fresh/isolated regression runs completed for security, transfers, inventory/backup, purchase returns, FX, corrections, partnerships, invoice design and staff limits. The new central business checks also passed after correcting the staff-count membership query.
+- Earlier WASM attempts could not complete `finance` or `invoice-verification` because that runtime lacks Sodium; `policies` also has a non-CLI SAPI difference. Those are explicitly **not** counted as new passes. No MariaDB, Apache, browser, real host, external AI/Google/mail or concurrent-production-load check was performed in this patch.
+
+Migration 022 adds optional business contact/subscription fields and branch/staff ceilings without changing existing values. Migration 023 adds nullable sale request key/content hash columns and a unique `(shop_id, sale_request_key)` index; historical sales remain nullable. The active request handler now supplies these values. Limits are enforced in the server-side management service, with a business-row lock on MySQL to serialize creation against ceiling changes. Central users retain their existing central-only invoice-design path.
+
+The checks do not prove zero vulnerabilities or complete accounting coverage. The actual host still needs a backup, patch upload, automatic migration on the first authenticated request, and Apache/MariaDB smoke tests. Do not replace `config/hosting.php`, private keys, `.htaccess` files or existing runtime data during the update.
+
+## Historical checks for 2.3.3
 
 The diagnostic and preparation trimmed copied key whitespace while the installer compared raw input. Key verification is now shared and consistent. It is a separate CSRF-protected step; the verified session stores only a timestamp/binding and expires after 15 minutes. Administrator autofill fields are absent from the key step, and the raw key field is absent from the account step. Key rotation or a different runtime directory invalidates authorization. Existing configured accounts are detected with read-only queries after key verification, before displaying an administrator-creation form. A candidate nonempty database is rejected before its credentials are persisted.
 

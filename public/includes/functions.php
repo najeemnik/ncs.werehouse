@@ -13,11 +13,14 @@ require_once __DIR__.'/invoice_verification.php';
 require_once __DIR__ . '/inventory_purchases.php';
 require_once __DIR__ . '/access.php';
 require_once __DIR__ . '/domain.php';
+require_once __DIR__.'/ui_services.php';
+require_once __DIR__.'/user_preview.php';
 require_once __DIR__.'/inventory_documents.php';
 require_once __DIR__.'/accounting.php';
 require_once __DIR__.'/returns.php';
 require_once __DIR__.'/fx.php';require_once __DIR__.'/corrections.php';require_once __DIR__.'/partnerships.php';
 require_once __DIR__.'/backup_files.php';
+require_once __DIR__.'/sale_requests.php';
 
 /**
  * Normalizes Persian (۰-۹) and Arabic (٠-٩) digits to standard ASCII English digits (0-9).
@@ -625,6 +628,19 @@ function get_lockable_features() {
         ],
     ];
 
+    foreach([
+        'dashboard_stock_value'=>['ارزش موجودی در داشبورد','Dashboard inventory value'],
+        'dashboard_mudaraba'=>['حساب مضاربت در داشبورد','Dashboard Mudaraba account'],
+        'dashboard_capital'=>['سرمایهٔ دکان در داشبورد','Dashboard shop capital'],
+        'dashboard_today_sales'=>['فروشات امروز در داشبورد','Dashboard today sales'],
+        'dashboard_today_profit'=>['سود خالص امروز در داشبورد','Dashboard today net profit'],
+        'dashboard_expenses'=>['مصارف عملیاتی در داشبورد','Dashboard operating expenses'],
+        'dashboard_overall_profit'=>['سود خالص عمومی در داشبورد','Dashboard overall net profit'],
+        'dashboard_debts'=>['طلب‌های باقی‌مانده در داشبورد','Dashboard outstanding receivables'],
+        'dashboard_quick_actions'=>['عملیات مشترک داشبورد','Dashboard quick operations'],
+        'dashboard_mudaraba_panel'=>['پنل زندهٔ مضاربت در داشبورد','Dashboard Mudaraba live panel'],
+        'dashboard_cash_flow'=>['خلاصهٔ مالی در داشبورد','Dashboard financial summary'],
+    ] as $key=>$label)$defaults[$key]=['key'=>$key,'title_fa'=>$label[0],'title_en'=>$label[1],'desc_fa'=>'کنترل جداگانهٔ نمایش، قفل یا پنهان‌بودن این بخش داشبورد','desc_en'=>'Independently show, lock or hide this dashboard panel','default'=>1];
     $defaults = array_merge($defaults, access_module_features());
 
     // Load any custom features added by super admin

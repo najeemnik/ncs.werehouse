@@ -1,4 +1,4 @@
-# Installation, upgrade and integrations — 2.3.4
+# Installation, upgrade and integrations — 2.3.5
 
 Restricted hosts: [browser installation guide](SHARED_HOST_DA.md), [protected storage assumptions and later migration](SHARED_HOST_STORAGE.md). The default outside-root deployment below remains unchanged; protected in-root storage requires an explicit individual profile and owner-authorized HTTP-denial checks.
 
@@ -37,6 +37,8 @@ Configure MySQL through `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`, o
 Migrations 007–019 preserve source business records. Existing shops remain separate businesses rather than guessing common ownership. Verify owners, branch memberships and policies. Historical noncentral accounts without a shop are attached to original shop 1; central users remain separate. Known demonstration passwords are quarantined: rotate privately using `bin/rotate-account.php` and `NIKXOR_RESET_USERNAME`/`NIKXOR_RESET_PASSWORD`.
 
 Migration 009 rebuilds SQLite branch uniqueness transactionally. Migration 010 adds accounting and partial returns and rebuilds SQLite return uniqueness; MySQL DDL needs staging verification and an independent rollback backup. Migration 011 reserves new transfer requests; old pending requests are marked unreserved and recheck availability at receipt. Migration 012 adds retry-safe fund-account request keys. Historical movements, profits and cash are not silently reconstructed. Legacy debt/invoice settlement creates an explicit balance-opening adjustment, not fictional historical receipts.
+
+Version 2.3.5 needs no additional migration beyond 022–023. Use **Owners, employees & permissions** for tenant account creation. Office 2 → Users → Business & assigned branch repairs an existing unassigned account after the correct branch is verified. Central quick presets establish ordinary tenant access; employee AI still requires separate owner approval. **Read-only user preview** is optional and is never the default login destination. It blocks POST changes and quota usage; use its exit button to return to the real central workspace.
 
 Migrations 022–023 run automatically through the normal application bootstrap after the source update. Migration 022 adds nullable business contact/subscription fields, status timestamps and zero-as-unlimited business-wide branch/staff ceilings. Migration 023 adds nullable POS request key/content hash columns and a unique branch/key index. Existing rows keep NULL request keys and existing financial values are not rewritten. The DB account needs ALTER/INDEX privileges for this one-time update. Confirm both versions appear in `schema_migrations`, then test one sale and a browser refresh/retry before resuming normal work.
 

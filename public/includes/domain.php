@@ -58,7 +58,7 @@ function domain_visibility(string $feature): string {
     foreach(domain_policy_chain($u,shop_id()) as [$type,$id])foreach([$feature,explode('.',$feature)[0]] as $k){$p=domain_policy($type,$id,$k);if($p && !(int)$p['enabled'] && $p['visibility']==='hidden')return 'hidden';}
     return $result;
 }
-function domain_require(string $feature): void {if(!domain_can($feature))access_deny(403,'permission_denied',__t('You do not have permission for this action.','اجازهٔ انجام این کار را ندارید.','د دې کار اجازه نه لرئ.'));}
+function domain_require(string $feature): void {if(!domain_can($feature)){if(shop_id()<1&&!domain_is_central(auth_user()))access_deny(403,'branch_assignment_required',__t('Your account has no assigned business branch. Ask the administrator to assign one in Office 2 → Users.','برای حساب شما شعبه تعیین نشده است؛ مدیر باید از دفتر دو ← کاربران، تجارت و شعبه را تعیین کند.','ستاسو حساب څانګه نه لري؛ مدیر باید یې وټاکي.'));access_deny(403,'permission_denied',__t('You do not have permission for this action.','اجازهٔ انجام این کار را ندارید.','د دې کار اجازه نه لرئ.'));}}
 function domain_route(): array {
     $f=basename($_SERVER['SCRIPT_NAME']??'');
     $map=['index.php'=>'dashboard','sales.php'=>'sales','invoices.php'=>'sales','stock.php'=>'inventory','stock_add.php'=>'purchases','purchases.php'=>'purchases','stock_edit.php'=>'inventory','warehouse.php'=>'inventory','barcode_guide.php'=>'inventory','categories.php'=>'inventory','customers.php'=>'customers','debts.php'=>'debts','expenses.php'=>'expenses','losses.php'=>'losses','partners.php'=>'partners','mudaraba.php'=>'mudaraba','partnership_settlement.php'=>'mudaraba','capital.php'=>'capital','reports.php'=>'reports','settings.php'=>'settings','backup.php'=>'backup','ai_advisor.php'=>'ai','about.php'=>'about','management.php'=>'staff','portfolio.php'=>'branches','activity.php'=>'audit','closing.php'=>'closings','inventory_documents.php'=>'inventory','sales_returns.php'=>'sales','treasury.php'=>'treasury','fx.php'=>'treasury','accounting.php'=>'accounting','corrections.php'=>'accounting','suppliers.php'=>'suppliers','purchase_returns.php'=>'purchases'];
@@ -106,7 +106,8 @@ function domain_audit(string $type,string $entity,$id=null,?array $after=null,$a
 }
 function domain_save_policy(string $type,int $id,string $feature,array $p): void {
     global $pdo;if(!in_array($type,['system','business','branch','user','owner_user'],true)||!isset(domain_catalog()[$feature]))throw new InvalidArgumentException('Unknown policy.');
-    $enabled=$p['enabled']??'0';$visibility=$p['visibility']??'hidden';
+    if(isset($p['mode'])){$mode=$p['mode'];if(!in_array($mode,['enabled','locked','hidden'],true))throw new InvalidArgumentException('Invalid policy mode.');$enabled=$mode==='enabled'?'1':'0';$visibility=$mode==='hidden'?'hidden':'locked';}
+    else{$enabled=$p['enabled']??'0';$visibility=$p['visibility']??'hidden';}
     if(!in_array((string)$enabled,['0','1'],true)||!in_array($visibility,['hidden','locked'],true))throw new InvalidArgumentException('Invalid policy.');
     $limits=[];foreach(['daily_limit','monthly_limit'] as $k){$v=$p[$k]??'';if(!is_scalar($v)||($v!==''&&(!ctype_digit((string)$v)||(int)$v>1000000)))throw new InvalidArgumentException('Invalid limit.');$limits[]=$v===''?null:(int)$v;}
     $old=domain_policy($type,$id,$feature);$pdo->prepare('DELETE FROM service_policies WHERE scope_type=? AND scope_id=? AND feature=?')->execute([$type,$id,$feature]);
@@ -117,6 +118,7 @@ function domain_save_policy(string $type,int $id,string $feature,array $p): void
 /** Reserve all inherited quotas atomically; also called by AI, not only the UI. */
 function domain_consume(string $feature,?array $u=null,bool $exact=false): void {
     global $pdo;$u=$u??auth_user();if(!domain_can($feature,$u))throw new RuntimeException('Permission denied.',403);
+    if(preview_active())return;
     $own=!$pdo->inTransaction();if($own)$pdo->beginTransaction();
     try{
         $ins=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite'?'INSERT OR IGNORE':'INSERT IGNORE';

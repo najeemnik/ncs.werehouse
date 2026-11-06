@@ -55,7 +55,7 @@ function office2_bool(array $p,$key){$v=$p[$key]??'0';if(!in_array($v,['0','1',0
 function office2_target($id) {
     global $pdo;
     if(!is_scalar($id)||!ctype_digit((string)$id)||(int)$id<1)throw new InvalidArgumentException('Invalid account.');
-    $q=$pdo->prepare('SELECT id,username,fullname,role,status,created_at FROM users WHERE id=?');$q->execute([(int)$id]);$u=$q->fetch();
+    $q=$pdo->prepare('SELECT id,username,fullname,role,status,shop_id,created_at FROM users WHERE id=?');$q->execute([(int)$id]);$u=$q->fetch();
     if(!$u)throw new InvalidArgumentException(__t('Account not found.','حساب یافت نشد.','حساب ونه موندل شو.'));return $u;
 }
 function office2_reauthenticate(array $p) {
@@ -73,9 +73,9 @@ function office2_set_feature($id,$key,$allowed) {
     global $pdo;
     if(!is_string($key)||!isset(get_lockable_features()[$key]))throw new InvalidArgumentException('Unknown feature.');
     if($allowed==='inherit'){domain_legacy_policy('user',(int)$id,$key,'inherit');$pdo->prepare('DELETE FROM user_feature_access WHERE user_id=? AND feature_key=?')->execute([$id,$key]);return;}
-    if(!in_array($allowed,['0','1',0,1],true))throw new InvalidArgumentException('Invalid feature permission.');
+    if(!in_array($allowed,['0','1',0,1,'hidden'],true))throw new InvalidArgumentException('Invalid feature permission.');
     $sql=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite'?'INSERT INTO user_feature_access (user_id,feature_key,allowed) VALUES (?,?,?) ON CONFLICT(user_id,feature_key) DO UPDATE SET allowed=excluded.allowed,updated_at=CURRENT_TIMESTAMP':'INSERT INTO user_feature_access (user_id,feature_key,allowed) VALUES (?,?,?) ON DUPLICATE KEY UPDATE allowed=VALUES(allowed),updated_at=CURRENT_TIMESTAMP';
-    $pdo->prepare($sql)->execute([$id,$key,(int)$allowed]);domain_legacy_policy('user',(int)$id,$key,$allowed);
+    $pdo->prepare($sql)->execute([$id,$key,$allowed==='1'||$allowed===1?1:0]);$feature=domain_legacy_feature($key);if(isset(domain_catalog()[$feature]))domain_save_policy('user',(int)$id,$feature,['enabled'=>$allowed==='1'||$allowed===1?'1':'0','visibility'=>$allowed==='hidden'?'hidden':'locked']);
 }
 function office2_history($userId=null,$action=null,$limit=150) {
     global $pdo;$where="action LIKE 'Office 2: %'";$params=[];
@@ -101,7 +101,7 @@ function office2_mutate($action,array $p,array $files=[]) {
     global $pdo;$actor=office2_actor();
     if(!csrf_verify($p['csrf_token']??''))throw new RuntimeException(__t('Invalid form session. Refresh and try again.','نشست فرم نامعتبر است؛ صفحه را تازه کنید.','د فورم ناسته ناسمه ده؛ پاڼه تازه کړئ.'),403);
     if(!is_string($action))throw new InvalidArgumentException('Invalid action.');
-    $targetActions=['edit_user','account_state','reset_password','save_permissions','save_subscription','renew_subscription','save_ai','reset_ai'];
+    $targetActions=['edit_user','account_state','reset_password','save_permissions','save_subscription','renew_subscription','save_ai','reset_ai','assign_user_branch'];
     $target=in_array($action,$targetActions,true)?office2_target($p['user_id']??'') : null;
     if(in_array($action,['reset_password','change_master_pin','factory_reset_database','reset_initial_setup','create_shop','create_shop_employee'],true)||($action==='edit_user'&&($p['role']??'')!==$target['role'])||($action==='create_user'&&access_super_role($p['role']??'')))office2_reauthenticate($p);
     if($action==='factory_reset_database')return office2_factory_reset($p,$actor);
@@ -115,14 +115,23 @@ function office2_mutate($action,array $p,array $files=[]) {
                 if(strlen($username)>100||!preg_match('/^[\pL\pN_.@-]{3,50}$/uD',$username)||!in_array($role,office2_roles(),true))throw new InvalidArgumentException(__t('Invalid username or role.','نام کاربری یا نقش نامعتبر است.','کارن نوم یا دنده ناسمه ده.'));
                 $q=$pdo->prepare('SELECT id FROM users WHERE LOWER(username)=LOWER(?) AND id<>?');$q->execute([$username,$id]);if($q->fetchColumn())throw new InvalidArgumentException(__t('Username already exists.','نام کاربری قبلاً ثبت شده است.','کارن نوم مخکې ثبت شوی.'));
                 if($action==='create_user'){
+                    if(!access_super_role($role))throw new InvalidArgumentException(__t('Business users must be created with a business and assigned branch. Use “Owners, employees & permissions”.','یوزر تجارت باید با تجارت و شعبهٔ تعیین‌شده ساخته شود؛ از «مالکین، کارمندان و صلاحیت‌ها» استفاده کنید.','د سوداګرۍ کارن باید څانګه ولري؛ د مالکانو او کارکوونکو برخه وکاروئ.'));
                     $password=$p['password']??'';security_validate_new_password($password,$p['confirm_password']??'');
                     $pdo->prepare('INSERT INTO users (username,password,fullname,role,status) VALUES (?,?,?,?,?)')->execute([$username,password_hash($password,PASSWORD_DEFAULT),$fullname,$role,'active']);$id=(int)$pdo->lastInsertId();access_ensure_profile($id);
                     $pdo->prepare('UPDATE user_access SET must_change_password=1 WHERE user_id=?')->execute([$id]);
                 }else{
+                    if(access_super_role($role)&&(int)($target['shop_id']??0)>0)throw new InvalidArgumentException(__t('A central role cannot keep a tenant branch. Create a separate central account instead.','نقش مرکزی نمی‌تواند شعبهٔ تجارت داشته باشد؛ حساب مرکزی جدا بسازید.','مركزي دنده نشي کولای سوداګریزه څانګه ولري.'));
+                    if(!access_super_role($role)&&!(int)($target['shop_id']??0))throw new InvalidArgumentException(__t('Assign a business branch before giving this account a tenant role.','پیش از نقش تجاری، برای این حساب شعبه تعیین کنید.','دمخه څانګه وټاکئ.'));
                     office2_guard_admin($target,$role,$target['status'],(int)access_profile($id)['is_locked']);
                     $pdo->prepare('UPDATE users SET username=?,fullname=?,role=? WHERE id=?')->execute([$username,$fullname,$role,$id]);office2_revoke($id);
                 }
                 office2_audit($action,$id,['role'=>$role]);break;
+            case 'assign_user_branch':
+                if(domain_is_central($target))throw new InvalidArgumentException('Central accounts do not use a tenant branch.');
+                $branchId=filter_var($p['shop_id']??0,FILTER_VALIDATE_INT);$branch=$branchId?domain_branch((int)$branchId):null;
+                if(!$branch)throw new InvalidArgumentException(__t('Choose a valid business branch.','یک شعبهٔ معتبر تجارت انتخاب کنید.','د سوداګرۍ سمه څانګه وټاکئ.'));
+                $pdo->prepare('UPDATE users SET shop_id=? WHERE id=?')->execute([(int)$branchId,$id]);$pdo->prepare('DELETE FROM branch_memberships WHERE user_id=?')->execute([$id]);$pdo->prepare('INSERT INTO branch_memberships (user_id,shop_id) VALUES (?,?)')->execute([$id,(int)$branchId]);
+                access_ensure_profile($id);office2_revoke($id);office2_audit('assign_user_branch',$id,['shop_id'=>(int)$branchId,'business_id'=>(int)$branch['business_id']]);break;
             case 'account_state':
                 $status=office2_text($p,'status',20,true);$locked=office2_bool($p,'is_locked');if(!in_array($status,['active','inactive'],true))throw new InvalidArgumentException('Invalid account status.');
                 office2_guard_admin($target,$target['role'],$status,$locked);access_ensure_profile($id);

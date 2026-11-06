@@ -169,11 +169,11 @@ $currentScript = basename($_SERVER['SCRIPT_NAME']);
                         </div>
                     </div>
                 </div>
-                <button type="button" onclick="lockShopScreen();" class="logout-btn" style="background: var(--warning-soft); color: var(--warning); border: 1px solid #fde68a;" title="<?= __('lock_shop_screen') ?>">
+                <?php if(!preview_active()): ?><button type="button" onclick="lockShopScreen();" class="logout-btn" style="background: var(--warning-soft); color: var(--warning); border: 1px solid #fde68a;" title="<?= __('lock_shop_screen') ?>">
                     <i class="fa-solid fa-lock"></i>
-                </button>
+                </button><?php endif; ?>
             </div>
-            <button type="submit" form="accountLogoutForm" class="btn btn-secondary btn-sm" style="width:100%;margin-top:12px"><i class="fa-solid fa-arrow-right-from-bracket"></i> <?= __t('Sign out','خروج از حساب','له حسابه وتل') ?></button>
+            <?php if(!preview_active()): ?><button type="submit" form="accountLogoutForm" class="btn btn-secondary btn-sm" style="width:100%;margin-top:12px"><i class="fa-solid fa-arrow-right-from-bracket"></i> <?= __t('Sign out','خروج از حساب','له حسابه وتل') ?></button><?php endif; ?>
         </div>
     </aside>
 
@@ -182,6 +182,14 @@ $currentScript = basename($_SERVER['SCRIPT_NAME']);
 
     <!-- Main Content Area -->
     <main class="app-main" id="mainContent" tabindex="-1">
+        <?php if($preview=preview_state()): $previewBranch=shop_find((int)$preview['branch_id']); ?>
+        <div class="alert alert-warning" role="status" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:2px solid #f59e0b">
+            <strong><i class="fa-solid fa-eye"></i> <?= __t('READ-ONLY USER PREVIEW','پیش‌نمایش فقط‌خواندنی یوزر','د کارن یوازې لوستنۍ کتنه') ?></strong>
+            <span><?= sanitize($preview['user']['fullname'].' · '.$preview['user']['username'].' · '.($previewBranch['name']??'')) ?></span>
+            <span><?= __t('No sale, payment, setting or other POST change can be saved.','هیچ فروش، پرداخت، تنظیم یا تغییر POST ذخیره نمی‌شود.','هېڅ پلور، تادیه یا بدلون خوندي نه کېږي.') ?></span>
+            <form method="post" action="<?= BASE_URL ?>admin/user_preview.php" style="margin-inline-start:auto"><?= csrf_field() ?><input type="hidden" name="action" value="stop"><button class="btn btn-primary" type="submit"><?= __t('Exit preview','خروج از پیش‌نمایش','له کتنې وتل') ?></button></form>
+        </div>
+        <?php endif; ?>
         <?php
         // A central Office 2 administrator may work inside another shop; make that explicit.
         $contextShopId = (int)($_SESSION['shop_context_id'] ?? 0);
@@ -229,7 +237,7 @@ $currentScript = basename($_SERVER['SCRIPT_NAME']);
                         </div>
                     </div>
                     <button type="button" data-toggle-mode class="header-control header-appearance" aria-label="<?= __t('Toggle light/dark mode','تغییر حالت روشن و تاریک','رڼا او تیاره بڼه بدلول') ?>" title="<?= __t('Light / dark','روشن / تاریک','رڼا / تیاره') ?>"><i class="fa-regular fa-moon" aria-hidden="true"></i><span class="header-panel-label"><?= __t('Light / dark','روشن / تاریک','رڼا / تیاره') ?></span></button>
-                    <button type="button" data-header-lock class="header-control header-lock" aria-label="<?= __('lock_shop_screen') ?>" title="<?= __('lock_shop_screen') ?>"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span class="header-panel-label"><?= __('lock_shop_screen') ?></span></button>
+                    <?php if(!preview_active()): ?><button type="button" data-header-lock class="header-control header-lock" aria-label="<?= __('lock_shop_screen') ?>" title="<?= __('lock_shop_screen') ?>"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span class="header-panel-label"><?= __('lock_shop_screen') ?></span></button><?php endif; ?>
                 </div>
             </div>
         </header>

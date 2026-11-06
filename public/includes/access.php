@@ -61,7 +61,7 @@ function shop_feature_state($feature,$shopId=0) {
     return array_key_exists($feature,$cache[$shopId])?$cache[$shopId][$feature]:null;
 }
 function access_user_denied($feature,$id=null) {
-    global $pdo;$id=$id??(int)($_SESSION['user_id']??0);if(!$id)return false;
+    global $pdo;$id=$id??(int)(auth_user()['id']??0);if(!$id)return false;
     $q=$pdo->prepare('SELECT allowed FROM user_feature_access WHERE user_id=? AND feature_key=?');$q->execute([$id,$feature]);$value=$q->fetchColumn();
     return $value!==false&&(int)$value===0;
 }

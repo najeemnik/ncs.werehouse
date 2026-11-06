@@ -2,7 +2,7 @@
 /** Shared security helpers; existing users and password hashes remain authoritative. */
 function security_epoch(){return get_setting('security.session_epoch','0');}
 function security_user_version($id){return get_setting('security.user_version.'.(int)$id,'0');}
-function security_forget_auth(){foreach(['authenticated','user_id','user_username','user_fullname','user_role','auth_started','auth_seen','auth_version','auth_epoch','auth_fingerprint','super_admin_verified','is_super_admin','screen_locked','office2_version','central_mfa_at','shop_context_id'] as $key)unset($_SESSION[$key]);unset($GLOBALS['_auth_user']);}
+function security_forget_auth(){foreach(['authenticated','user_id','user_username','user_fullname','user_role','auth_started','auth_seen','auth_version','auth_epoch','auth_fingerprint','super_admin_verified','is_super_admin','screen_locked','office2_version','central_mfa_at','shop_context_id','central_user_preview'] as $key)unset($_SESSION[$key]);unset($GLOBALS['_auth_user'],$GLOBALS['_user_preview_state']);}
 function security_establish_session(array $user) {
     session_regenerate_id(true);
     security_forget_auth();

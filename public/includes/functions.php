@@ -13,6 +13,7 @@ require_once __DIR__.'/invoice_verification.php';
 require_once __DIR__ . '/inventory_purchases.php';
 require_once __DIR__ . '/access.php';
 require_once __DIR__ . '/domain.php';
+require_once __DIR__.'/user_preview.php';
 require_once __DIR__.'/inventory_documents.php';
 require_once __DIR__.'/accounting.php';
 require_once __DIR__.'/returns.php';

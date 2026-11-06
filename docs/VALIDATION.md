@@ -1,4 +1,18 @@
-# Validation — 2.3.4 business controls and sale retries, 2026-11-06 (Asia/Kabul)
+# Validation — 2.3.5 guided access and read-only preview, 2026-11-06 (Asia/Kabul)
+
+## Checks executed for 2.3.5
+
+The new checks again used isolated PHP 8.4.27 WebAssembly and SQLite, not the live Apache/MariaDB host. All 156 PHP files under `public/` and `tests/` passed syntax checks, and `git diff --check` passed.
+
+- Reproduced the account-design failure: the generic Office 2 form could create a tenant staff user with no business or branch, so dashboard authorization failed. That path now rejects unassigned tenant creation and directs the administrator to business-user management. Existing unassigned accounts can be explicitly assigned a branch from Office 2; no branch is guessed.
+- Created a full-permission business employee, signed in with the temporary password, completed the mandatory password change and opened the authorized dashboard. Central full-access setup enabled detailed sales/treasury permissions while a business-level lock still won.
+- The owner created two employees with different presets: full sales access and read-only access. Office 2 hidden mode hid the menu; locked mode kept it visible. The management screen rendered the quick presets, all three clear modes and user-preview links.
+- Four separate real preview requests verified the workspace banner and exit control, rejected a sale POST as read-only, stopped preview and restored the original central identity. No sale was inserted. Preview also left all request-allowance counters unchanged. An owner could not start central-only preview.
+- Regression suites `security`, `business-controls` and `staff-limits` completed after these changes. Previous suite results below remain historical and are not counted as rerun here.
+
+Preview is intentionally not impersonation for conducting business. It is an optional read-only inspection mode. The central account remains the authenticated actor, the target must be active and assigned to the selected branch, central MFA must remain valid, and normal permission checks still apply. No new database migration is required for 2.3.5.
+
+The actual ProFreeHost account, real browser, Apache/MariaDB and external services were not exercised. These results do not claim zero vulnerabilities or that every legacy unassigned account can be repaired automatically; an administrator must choose its correct business and branch.
 
 ## Checks executed for 2.3.4
 

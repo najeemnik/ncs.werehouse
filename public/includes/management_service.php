@@ -43,7 +43,7 @@ function management_mutate(array $p): void {
             $pdo->prepare('UPDATE user_access SET must_change_password=1 WHERE user_id=?')->execute([$uid]);
             domain_audit('business_created','business',$bid,['name'=>$name,'owner_id'=>$uid]);
             // Explicit policy selection is accepted at account creation as well as editing.
-            if(isset($p['policies']))management_policies('business',$bid,$p['policies']);
+            management_apply_requested_policies('business',$bid,$p);
         }elseif($action==='create_branch'){
             $b=management_business((int)($p['business_id']??0),$actor);
             if(!$central)domain_require('branches.create');
@@ -64,7 +64,7 @@ function management_mutate(array $p): void {
                 $pdo->prepare('INSERT INTO users (username,password,fullname,role,status,shop_id) VALUES (?,?,?,?,?,?)')->execute([$username,password_hash($p['password'],PASSWORD_DEFAULT),$name,'staff',$status,$ids[0]]);$uid=(int)$pdo->lastInsertId();access_ensure_profile($uid);$pdo->prepare('UPDATE user_access SET must_change_password=1 WHERE user_id=?')->execute([$uid]);
             }else{$uid=(int)$old['id'];$pdo->prepare('UPDATE users SET fullname=?,status=?,shop_id=? WHERE id=?')->execute([$name,$status,$ids[0],$uid]);$pdo->prepare('DELETE FROM branch_memberships WHERE user_id=?')->execute([$uid]);office2_revoke($uid);}
             foreach($ids as $sid)$pdo->prepare('INSERT INTO branch_memberships (user_id,shop_id) VALUES (?,?)')->execute([$uid,$sid]);
-            if(isset($p['policies']))management_policies($central?'user':'owner_user',$uid,$p['policies']);
+            management_apply_requested_policies($central?'user':'owner_user',$uid,$p);
             domain_audit($action,'user',$uid,['fullname'=>$name,'status'=>$status,'branches'=>$ids],null,$old);
         }elseif($action==='update_business'){
             if(!$central)throw new RuntimeException('Central only.',403);$b=management_business((int)($p['business_id']??0),$actor);
@@ -79,13 +79,23 @@ function management_mutate(array $p): void {
             $type=$p['scope_type']??'';$id=(int)($p['scope_id']??0);
             if($type==='business'){if(!$central)throw new RuntimeException('Central only.',403);management_business($id,$actor);}
             else{management_user($id,$actor);$type=$central?'user':'owner_user';}
-            management_policies($type,$id,$p['policies']??[]);
+            management_apply_requested_policies($type,$id,$p);
         }elseif($action==='switch_branch'){
             $sid=(int)($p['shop_id']??0);if(!domain_branch_allowed($actor,$sid))throw new RuntimeException('Branch access denied.',403);
             $_SESSION['shop_context_id']=$sid;domain_audit('branch_opened','branch',$sid);unset($GLOBALS['_ui_preferences']);
         }else throw new InvalidArgumentException('Unknown action.');
         $pdo->commit();
     }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
+}
+function management_apply_requested_policies(string $type,int $id,array $p): void {
+    $preset=$p['permission_preset']??'custom';
+    if($preset==='inherit')return;
+    if(!in_array($preset,['custom','full','read_only'],true))throw new InvalidArgumentException('Invalid permission preset.');
+    if($preset==='custom'){management_policies($type,$id,$p['policies']??[]);return;}
+    $policies=[];foreach(domain_catalog() as $feature=>$unused){$action=str_contains($feature,'.')?substr($feature,strrpos($feature,'.')+1):'module';$allowed=$preset==='full'||$action==='module'||in_array($action,['view','print'],true);$policies[$feature]=['mode'=>$allowed?'enabled':'locked','daily_limit'=>'','monthly_limit'=>''];}
+    management_policies($type,$id,$policies);
+    // A central quick setup also establishes ordinary tenant access. Employee AI still needs the owner's separate approval.
+    if($type==='user'&&domain_is_central(auth_user())){foreach($policies as $feature=>$unused)if(explode('.',$feature)[0]==='ai')$policies[$feature]['mode']='locked';management_policies('owner_user',$id,$policies);}
 }
 function management_policies(string $type,int $id,$policies): void {
     if(!is_array($policies)||count($policies)>250)throw new InvalidArgumentException('Invalid policies.');

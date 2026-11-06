@@ -1,6 +1,6 @@
 # Nik Smart Count — Warehousing
 
-Multi-business PHP application developed from the user-supplied `werehouse.zip`. Author: **Ahmad Najeem Nik**, +93 783 788 278. Version 2.3.4 adds central business status/subscription/contact controls, business-wide branch/staff ceilings and retry-safe sales. It also scopes purchase dropdowns and profit-known contract updates to the active branch. Earlier installer and no-CREATE VIEW repairs remain included. Uploaded databases, live credentials and sessions are excluded.
+Multi-business PHP application developed from the user-supplied `werehouse.zip`. Author: **Ahmad Najeem Nik**, +93 783 788 278. Version 2.3.5 adds guided full/read-only/custom user permissions, visible-lock versus hidden-lock modes, branch assignment for legacy users and an optional central read-only preview of any assigned business user. Version 2.3.4 business controls and retry-safe sales remain included, along with the earlier installer and no-CREATE VIEW repairs. Uploaded databases, live credentials and sessions are excluded.
 
 ## Implemented
 
@@ -13,6 +13,8 @@ Multi-business PHP application developed from the user-supplied `werehouse.zip`.
 
 - Business → branches → assigned employees; central Office 2 administration separated from owners. Central-only business status, contact details, subscription expiry and business-wide branch/staff limits; branch comparison and activity history.
 - Retry-safe POS submissions bound to branch, request key and exact content. An identical retry opens the recorded invoice without duplicating stock movements or journals; altered reuse is rejected.
+- Guided full/read-only/custom permissions for central and owners. Every feature can be enabled, visibly locked, or locked and hidden. Tenant users require an assigned business branch; legacy unassigned accounts can be repaired centrally.
+- Optional central user preview uses the selected user's menus, branch and permissions without replacing the administrator identity. POST changes and quota consumption are blocked, with a persistent exit control.
 - Central business/user policies and owner employee policies, service/action permissions, hidden or locked presentation and atomic daily/monthly request limits. Employee AI requires both central and owner approval, within the owner's central ceiling.
 - Central TOTP with expiry, throttling and replay protection. Password rotation, session revocation, CSRF checks and branch-scoped mutations.
 - Private-token installation with database, first central administrator and verified authenticator enrollment. No default accounts. An authenticated central setup page holds deferred AI, Google and contact settings encrypted outside the public root.

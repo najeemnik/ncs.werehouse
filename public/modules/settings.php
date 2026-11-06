@@ -25,6 +25,16 @@ elseif(($_SERVER['REQUEST_METHOD']??'GET')==='POST'){
                 if(isset($_POST['reference_rate'])&&!is_string($_POST['reference_rate']))throw new InvalidArgumentException(__t('Invalid rate.','نرخ نامعتبر است.','نرخ ناسم دی.'));
                 ui_save_informational_rate($_POST);$tab='financial';break;
             case 'password_change':security_change_password($_POST['current_password']??'',$_POST['new_password']??'',$_POST['confirm_password']??'');$tab='security';break;
+            case 'mfa_begin':
+                if(!mfa_available($currentUser)||totp_secret((int)$currentUser['id'])!=='')throw new InvalidArgumentException(__t('Authenticator is unavailable or already configured.','تأییدکننده در دسترس نیست یا قبلاً تنظیم شده است.','تایید مخکې تنظیم شوی یا اجازه نشته.'));
+                $_SESSION['mfa_pending_secret']=['user_id'=>(int)$currentUser['id'],'secret'=>totp_secret_generate(),'created_at'=>time()];$tab='security';break;
+            case 'mfa_cancel':unset($_SESSION['mfa_pending_secret']);$tab='security';break;
+            case 'mfa_enable':
+                $pending=$_SESSION['mfa_pending_secret']??null;if(!is_array($pending)||(int)$pending['user_id']!==(int)$currentUser['id']||time()-(int)$pending['created_at']>900)throw new InvalidArgumentException(__t('Authenticator setup expired. Start again.','زمان تنظیم تأییدکننده پایان یافته؛ دوباره شروع کنید.','د تایید تنظیم پای ته ورسېد؛ بیا پیل یې کړئ.'));
+                if(!totp_enable($currentUser,$pending['secret'],(string)($_POST['code']??'')))throw new InvalidArgumentException(__t('The six-digit code is invalid or too many attempts were made.','کُد شش‌رقمی نادرست است یا تلاش‌ها بیشتر از حد شده است.','کوډ ناسم دی یا هڅې ډېرې شوې.'));
+                unset($_SESSION['mfa_pending_secret']);$tab='security';break;
+            case 'mfa_disable':if(!totp_disable($currentUser,(string)($_POST['current_password']??''),(string)($_POST['code']??'')))throw new InvalidArgumentException(__t('Password or authenticator code is incorrect.','رمز یا کُد تأییدکننده نادرست است.','رمز یا کوډ ناسم دی.'));$tab='security';break;
+            case 'mfa_revoke_devices':trusted_device_revoke_user((int)$currentUser['id']);$tab='security';break;
             default:throw new InvalidArgumentException(__t('Unknown settings action.','عملیات تنظیمات نامعتبر است.','د تنظیماتو عمل ناسم دی.'));
         }
         log_activity($currentUser['id'],'Settings updated',$action);
@@ -32,7 +42,7 @@ elseif(($_SERVER['REQUEST_METHOD']??'GET')==='POST'){
         redirect(BASE_URL.'modules/settings.php?tab='.$tab);
     }catch(Throwable $e){$error=$e instanceof InvalidArgumentException?public_error($e):__t('The change could not be saved safely. No partial changes were applied.','تغییر به‌صورت امن ذخیره نشد؛ تغییر ناقص اعمال نشده است.','بدلون په خوندي ډول ونه ساتل شو؛ نیمګړی بدلون نه دی شوی.');}
 }
-$prefs=ui_preferences();$pageTitle=__t('Settings','تنظیمات','تنظیمات');
+$prefs=ui_preferences();$mfaAllowed=mfa_available($currentUser);$mfaSecret=totp_secret((int)$currentUser['id']);$mfaPending=$_SESSION['mfa_pending_secret']??null;if(is_array($mfaPending)&&((int)$mfaPending['user_id']!==(int)$currentUser['id']||time()-(int)$mfaPending['created_at']>900)){unset($_SESSION['mfa_pending_secret']);$mfaPending=null;}$pageTitle=__t('Settings','تنظیمات','تنظیمات');
 require_once __DIR__.'/../includes/header.php';
 require __DIR__.'/../includes/settings_view.php';
 require_once __DIR__.'/../includes/footer.php';

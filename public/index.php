@@ -10,20 +10,14 @@ require_once __DIR__ . '/includes/header.php';
 
 // Calculate core metrics
 $metrics = get_dashboard_metrics();
-$accountWhere=currency_sql();
-$salesAccountWhere=currency_sql('s');
 
-// Fetch low stock items (quantity <= 3)
-$lowStockStmt = $pdo->query("SELECT s.*, c.name as category_name 
-                             FROM stock s 
-                             LEFT JOIN categories c ON s.category_id = c.id 
-                             WHERE s.quantity <= 3 AND ".shop_sql('s')." 
-                             ORDER BY s.quantity ASC LIMIT 6");
-$lowStockItems = $lowStockStmt->fetchAll();
-$showInventoryAlerts=ui_preferences()['notifications']==='on';
+// Load optional panel data only when its presentation permission allows real values.
+$showInventoryAlerts=ui_preferences()['notifications']==='on';$lowStockMode=domain_visibility('inventory.low_stock_alert');
+$lowStockItems=($showInventoryAlerts&&$lowStockMode==='enabled')?$pdo->query("SELECT s.*, c.name as category_name FROM stock s LEFT JOIN categories c ON s.category_id = c.id WHERE s.quantity <= 3 AND ".shop_sql('s')." ORDER BY s.quantity ASC LIMIT 6")->fetchAll():[];
 
-// Fetch Mudaraba contracts for dashboard display
-$mudarabaContracts = currency_contract_views($pdo->query("SELECT * FROM mudaraba_contracts WHERE " . shop_sql() . " ORDER BY id DESC")->fetchAll());
+// Mudaraba values are never queried merely to render a locked or hidden panel.
+$mudarabaMode=domain_visibility('dashboard.mudaraba');$mudarabaPanelMode=domain_visibility('dashboard.mudaraba_panel');$mudarabaMainMode=domain_visibility('mudaraba');$reportsMode=domain_visibility('reports');
+$mudarabaContracts=($mudarabaMode==='enabled'||$mudarabaPanelMode==='enabled')?currency_contract_views($pdo->query("SELECT * FROM mudaraba_contracts WHERE " . shop_sql() . " ORDER BY id DESC")->fetchAll()):[];
 $totalMudarabaActiveCap = 0;
 $totalMudarabaSales = 0;
 $totalMudarabaShopProfit = 0;
@@ -37,209 +31,61 @@ foreach ($mudarabaContracts as $mc) {
     $totalMudarabaShopProfit += ((float)$mc['total_profit_amount'] * (float)$mc['shop_profit_rate']) / 100;
 }
 
-// Fetch latest sales (last 6 transactions)
-$recentSalesStmt = $pdo->query("SELECT s.*, u.fullname as staff_name 
-                                FROM sales s 
-                                LEFT JOIN users u ON s.created_by = u.id 
-                                WHERE {$salesAccountWhere} AND ".shop_sql('s')." ORDER BY s.id DESC LIMIT 6");
-$recentSales = $recentSalesStmt->fetchAll();
 ?>
 
-<!-- Metric Statistics Cards -->
+<?php
+$todayProfitValue=!$metrics['today_profit_known']?currency_profit_html(0,false):($metrics['today_net_profit']>0?'+'.format_money($metrics['today_net_profit']):($metrics['today_net_profit']<0?'-'.format_money(abs($metrics['today_net_profit'])):format_money(0)));
+$todayProfitDescription=!$metrics['today_profit_known']?__t('Mixed-currency profit is not calculated.','سود معاملات چندارزی محاسبه نشده است.','د څو اسعارو ګټه نه ده حساب شوې.'):sprintf(__('card_breakdown'),format_money($metrics['today_sales_profit'],false),format_money($metrics['today_expenses'],false),format_money($metrics['today_losses'],false));
+$overallProfitValue=!$metrics['profit_known']?currency_profit_html(0,false):($metrics['overall_net_profit']>=0?format_money($metrics['overall_net_profit']):'-'.format_money(abs($metrics['overall_net_profit'])));
+$dashboardCards=[
+ ['dashboard-stock-value','dashboard.stock_value',__('card_stock_sale_value'),format_money($metrics['stock_sale_value']),sprintf(__('card_stock_sale_value_desc'),format_money($metrics['stock_value'],false)).'<br><i class="fa-solid fa-layer-group"></i> '.sprintf(__t('%s items in shop','%s مقدار موجودی در دکان','په هټۍ کې %s موجودي'),to_persian_num($metrics['total_items_count'])),'fa-boxes-stacked','primary'],
+ ['dashboard-mudaraba','dashboard.mudaraba',__('nav_mudaraba'),format_money($totalMudarabaActiveCap),'<i class="fa-solid fa-globe"></i> '.to_persian_num($activeMudarabaCount).' '.__('card_total_items_desc'),'fa-handshake-angle','success'],
+ ['dashboard-capital','dashboard.capital',__('card_shop_capital'),currency_profit_html($metrics['total_capital'],$metrics['profit_known']),'<i class="fa-solid fa-building-columns"></i> '.__('card_shop_capital_desc'),'fa-vault','primary'],
+ ['dashboard-today-sales','dashboard.today_sales',__('card_today_sales'),format_money($metrics['today_sales']),$metrics['today_sales']>0?__('card_today_sales_profit').' <strong>'.currency_profit_html($metrics['today_sales_profit'],$metrics['today_profit_known']).'</strong>':'<i class="fa-solid fa-receipt"></i> '.__('card_no_sales_today'),'fa-cart-shopping','info'],
+ ['dashboard-today-profit','dashboard.today_profit',$metrics['today_net_profit']>=0?__('card_today_net_profit'):__('card_today_net_loss'),$todayProfitValue,$todayProfitDescription,$metrics['today_net_profit']>=0?'fa-arrow-trend-up':'fa-arrow-trend-down',$metrics['today_net_profit']>=0?'success':'danger'],
+ ['dashboard-expenses','dashboard.expenses',__('card_expenses'),format_money($metrics['today_expenses']),sprintf(__('card_expenses_desc'),format_money($metrics['total_expenses'],false)),'fa-receipt','warning'],
+ ['dashboard-overall-profit','dashboard.overall_profit',$metrics['overall_net_profit']>=0?__('card_overall_profit'):__('card_overall_loss'),$overallProfitValue,__('card_today_sales_profit').' '.currency_profit_html($metrics['total_sales_profit'],$metrics['profit_known']).'<br>'.sprintf(__('card_total_losses'),format_money($metrics['total_losses'],false)),$metrics['overall_net_profit']>=0?'fa-chart-line':'fa-arrow-trend-down',$metrics['overall_net_profit']>=0?'success':'danger'],
+ ['dashboard-debts','dashboard.debts',__('card_debts'),format_money($metrics['total_outstanding_debts']),__('card_debts_desc'),'fa-hand-holding-dollar','danger'],
+];
+?>
+<section class="dashboard-hero">
+  <div class="dashboard-hero-copy"><div class="eyebrow">NIK SMART COUNT · YOUR WORKSPACE</div><h1><?= __t('Welcome back, ','خوش برگشتی، ','ښه راغلې، ') ?><?= sanitize($currentUser['fullname']) ?> <span aria-hidden="true">👋</span></h1><p><?= __t('Your business at a glance — clear, calm and ready for today’s work.','تجارت شما در یک نگاه — روشن، منظم و آمادهٔ کار امروز.','ستاسو سوداګري په یوه کتنه کې — روښانه، منظمه او د ننني کار لپاره چمتو.') ?></p><span class="dashboard-hero-date"><i class="fa-regular fa-calendar"></i> <?= ui_date(date('Y-m-d')) ?></span></div>
+  <div class="dashboard-hero-art" aria-hidden="true"><span><i class="fa-solid fa-chart-line"></i></span><span><i class="fa-solid fa-boxes-stacked"></i></span><span><i class="fa-solid fa-receipt"></i></span><span><i class="fa-solid fa-handshake"></i></span></div>
+</section>
 <div class="stats-grid dashboard-stats">
-    <!-- Card 1: ارزش موجودی به قیمت فروش / Inventory value at selling price -->
-    <div class="stat-card">
-        <div class="stat-header">
-            <span class="stat-title"><?= __('card_stock_sale_value') ?></span>
-            <div class="stat-icon icon-stock">
-                <i class="fa-solid fa-boxes-stacked"></i>
-            </div>
-        </div>
-        <div class="stat-value"><?= format_money($metrics['stock_sale_value']) ?></div>
-        <div class="stat-desc">
-            <?= sprintf(__('card_stock_sale_value_desc'), format_money($metrics['stock_value'], false)) ?><br>
-            <i class="fa-solid fa-layer-group ml-1"></i> <?= sprintf(__t('%s items in shop','%s مقدار موجودی در دکان','په هټۍ کې %s موجودي'), to_persian_num($metrics['total_items_count'])) ?>
-        </div>
-    </div>
-
-    <!-- Card 2: سرمایه مضاربت و کالای خارجی / Mudaraba Capital -->
-    <div class="stat-card" style="border-right: 4px solid var(--success);">
-        <div class="stat-header">
-            <span class="stat-title"><?= __('nav_mudaraba') ?></span>
-            <div class="stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success);">
-                <i class="fa-solid fa-handshake-angle"></i>
-            </div>
-        </div>
-        <div class="stat-value" style="color: var(--success);"><?= format_money($totalMudarabaActiveCap) ?></div>
-        <div class="stat-desc" style="display: flex; justify-content: space-between; align-items: center;">
-            <span><i class="fa-solid fa-globe ml-1"></i> <?= to_persian_num($activeMudarabaCount) ?> <?= __('card_total_items_desc') ?></span>
-            <a href="<?= BASE_URL ?>modules/mudaraba.php" style="color: var(--info); font-weight: 700; text-decoration: none; font-size: 11.5px;">
-                <?= __('manage') ?> <i class="fa-solid fa-arrow-left"></i>
-            </a>
-        </div>
-    </div>
-
-    <!-- Card 3: سرمایه عمومی / Shop Capital -->
-    <div class="stat-card">
-        <div class="stat-header">
-            <span class="stat-title"><?= __('card_shop_capital') ?></span>
-            <div class="stat-icon icon-capital">
-                <i class="fa-solid fa-vault"></i>
-            </div>
-        </div>
-        <div class="stat-value"><?= currency_profit_html($metrics['total_capital'],$metrics['profit_known']) ?></div>
-        <div class="stat-desc">
-            <i class="fa-solid fa-building-columns ml-1"></i> <?= __('card_shop_capital_desc') ?>
-        </div>
-    </div>
-
-    <!-- Card 4: فروشات امروز / Today's Sales -->
-    <div class="stat-card">
-        <div class="stat-header">
-            <span class="stat-title"><?= __('card_today_sales') ?></span>
-            <div class="stat-icon icon-sales">
-                <i class="fa-solid fa-cart-shopping"></i>
-            </div>
-        </div>
-        <div class="stat-value" style="color: var(--info);"><?= format_money($metrics['today_sales']) ?></div>
-        <div class="stat-desc">
-            <?php if ($metrics['today_sales'] > 0): ?>
-                <?= __('card_today_sales_profit') ?> <strong style="color: var(--success);"><?= currency_profit_html($metrics['today_sales_profit'],$metrics['today_profit_known']) ?></strong>
-            <?php else: ?>
-                <span style="color: var(--text-muted);"><i class="fa-solid fa-receipt ml-1"></i> <?= __('card_no_sales_today') ?></span>
-            <?php endif; ?>
-        </div>
-    </div>
-
-    <!-- Card 5: وضعیت سود و زیان نهایی امروز / Today's Net Profit or Loss -->
-    <div class="stat-card">
-        <div class="stat-header">
-            <span class="stat-title"><?= $metrics['today_net_profit'] >= 0 ? __('card_today_net_profit') : __('card_today_net_loss') ?></span>
-            <div class="stat-icon" style="background: <?= $metrics['today_net_profit'] >= 0 ? 'rgba(22, 163, 74, 0.15)' : 'rgba(239, 68, 68, 0.15)' ?>; color: <?= $metrics['today_net_profit'] >= 0 ? 'var(--success)' : 'var(--danger)' ?>;">
-                <i class="fa-solid <?= $metrics['today_net_profit'] >= 0 ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down' ?>"></i>
-            </div>
-        </div>
-        <div class="stat-value" style="color: <?= $metrics['today_net_profit'] >= 0 ? 'var(--success)' : 'var(--danger)' ?>;">
-            <?php if(!$metrics['today_profit_known']): ?><?= currency_profit_html(0,false) ?>
-            <?php elseif ($metrics['today_net_profit'] > 0): ?>
-                +<?= format_money($metrics['today_net_profit']) ?>
-            <?php elseif ($metrics['today_net_profit'] < 0): ?>
-                -<?= format_money(abs($metrics['today_net_profit'])) ?>
-            <?php else: ?>
-                <?= format_money(0) ?>
-            <?php endif; ?>
-        </div>
-        <div class="stat-desc" style="font-size: 11px;">
-            <?php if(!$metrics['today_profit_known']): ?><?= __t('Mixed-currency profit is not calculated.','سود معاملات چندارزی محاسبه نشده است.','د څو اسعارو ګټه نه ده حساب شوې.') ?>
-            <?php elseif ($metrics['today_sales_profit'] == 0 && ($metrics['today_losses'] > 0 || $metrics['today_expenses'] > 0)): ?>
-                <span style="color: var(--danger);"><i class="fa-solid fa-triangle-exclamation ml-1"></i> <?= __('card_deficit_explanation') ?></span>
-            <?php else: ?>
-                <?= sprintf(__('card_breakdown'), format_money($metrics['today_sales_profit'], false), format_money($metrics['today_expenses'], false), format_money($metrics['today_losses'], false)) ?>
-            <?php endif; ?>
-            <?php if ($metrics['today_losses'] > 0): ?><br><span style="color: var(--danger);"><i class="fa-solid fa-triangle-exclamation ml-1"></i> <?= sprintf(__('card_today_losses_line'), format_money($metrics['today_losses'], false)) ?></span><?php endif; ?>
-        </div>
-    </div>
-
-    <!-- Card 7: مصارف جاری دکان / Operating Expenses -->
-    <div class="stat-card">
-        <div class="stat-header">
-            <span class="stat-title"><?= __('card_expenses') ?></span>
-            <div class="stat-icon icon-debt" style="background: rgba(245, 158, 11, 0.15); color: var(--warning);">
-                <i class="fa-solid fa-receipt"></i>
-            </div>
-        </div>
-        <div class="stat-value" style="color: var(--warning);">
-            <?= format_money($metrics['today_expenses']) ?>
-        </div>
-        <div class="stat-desc" style="display: flex; justify-content: space-between; align-items: center;">
-            <span><?= sprintf(__('card_expenses_desc'), format_money($metrics['total_expenses'], false)) ?></span>
-            <a href="<?= BASE_URL ?>modules/expenses.php" style="color: var(--warning); font-weight: 700; text-decoration: none; font-size: 11px;">
-                <?= __('manage') ?> <i class="fa-solid fa-arrow-left"></i>
-            </a>
-        </div>
-    </div>
-
-    <!-- Card 8: مجموع مفاد عمومی / Overall Net Profit or Loss -->
-    <div class="stat-card">
-        <div class="stat-header">
-            <span class="stat-title"><?= $metrics['overall_net_profit'] >= 0 ? __('card_overall_profit') : __('card_overall_loss') ?></span>
-            <div class="stat-icon" style="background: <?= $metrics['overall_net_profit'] >= 0 ? 'rgba(22, 163, 74, 0.15)' : 'rgba(239, 68, 68, 0.15)' ?>; color: <?= $metrics['overall_net_profit'] >= 0 ? 'var(--success)' : 'var(--danger)' ?>;">
-                <i class="fa-solid <?= $metrics['overall_net_profit'] >= 0 ? 'fa-chart-line' : 'fa-arrow-trend-down' ?>"></i>
-            </div>
-        </div>
-        <div class="stat-value" style="color: <?= $metrics['overall_net_profit'] >= 0 ? 'var(--success)' : 'var(--danger)' ?>;">
-            <?php if(!$metrics['profit_known']): ?><?= currency_profit_html(0,false) ?>
-            <?php elseif ($metrics['overall_net_profit'] >= 0): ?>
-                <?= format_money($metrics['overall_net_profit']) ?>
-            <?php else: ?>
-                -<?= format_money(abs($metrics['overall_net_profit'])) ?>
-            <?php endif; ?>
-        </div>
-        <div class="stat-desc">
-            <?= __('card_today_sales_profit') ?> <?= currency_profit_html($metrics['total_sales_profit'],$metrics['profit_known']) ?><br>
-            <span style="color: var(--danger);"><i class="fa-solid fa-triangle-exclamation ml-1"></i> <?= sprintf(__('card_total_losses'), format_money($metrics['total_losses'], false)) ?></span>
-        </div>
-    </div>
-
-    <!-- Card 9: قرضه های باقی مانده / Debts -->
-    <div class="stat-card">
-        <div class="stat-header">
-            <span class="stat-title"><?= __('card_debts') ?></span>
-            <div class="stat-icon icon-debt">
-                <i class="fa-solid fa-hand-holding-dollar"></i>
-            </div>
-        </div>
-        <div class="stat-value" style="color: var(--danger);">
-            <?= format_money($metrics['total_outstanding_debts']) ?>
-        </div>
-        <div class="stat-desc">
-            <?= __('card_debts_desc') ?>
-        </div>
-    </div>
+<?php foreach($dashboardCards as $card)ui_render_dashboard_card(...$card); ?>
 </div>
 
-<!-- Quick Action Shortcuts -->
-<div class="card" style="margin-bottom: 24px;">
-    <div class="card-header">
-        <h3 class="card-title">
-            <i class="fa-solid fa-bolt ml-1"></i> <?= __('quick_actions_title') ?>
-        </h3>
-    </div>
-    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-        <a href="<?= BASE_URL ?>modules/sales.php" class="btn btn-primary">
-            <i class="fa-solid fa-cash-register"></i> <?= __('btn_new_sale') ?>
-        </a>
-        <a href="<?= BASE_URL ?>modules/invoices.php" class="btn btn-secondary" style="background: var(--info); color: var(--surface);">
-            <i class="fa-solid fa-receipt"></i> <?= __('btn_invoices_archive') ?>
-        </a>
-        <a href="<?= BASE_URL ?>modules/mudaraba.php" class="btn btn-secondary" style="background: var(--success); color: var(--surface);">
-            <i class="fa-solid fa-handshake-angle"></i> <?= __('btn_mudaraba') ?>
-        </a>
-        <a href="<?= BASE_URL ?>modules/stock_add.php" class="btn btn-secondary">
-            <i class="fa-solid fa-plus-circle"></i> <?= __('btn_add_stock') ?>
-        </a>
-        <a href="<?= BASE_URL ?>modules/stock.php" class="btn btn-secondary">
-            <i class="fa-solid fa-boxes-stacked"></i> <?= __('btn_stock_list') ?>
-        </a>
-        <a href="<?= BASE_URL ?>modules/debts.php" class="btn btn-secondary">
-            <i class="fa-solid fa-file-invoice"></i> <?= __('btn_debts') ?>
-        </a>
-        <a href="<?= BASE_URL ?>modules/reports.php" class="btn btn-secondary">
-            <i class="fa-solid fa-chart-pie"></i> <?= __('btn_financial_reports') ?>
-        </a>
-    </div>
-</div>
+<?php $quickMode=domain_visibility('dashboard.quick_actions');if($quickMode!=='hidden'): ?>
+<section class="card dashboard-quick-card" id="quick-actions">
+  <div class="card-header"><div><div class="eyebrow">YOUR DAILY WORKSPACE</div><h2 class="card-title"><i class="fa-solid fa-bolt"></i> <?= __('quick_actions_title') ?></h2><p class="dashboard-section-subtitle"><?= __t('Everything you need, one clear tap away.','هر چیزی که نیاز دارید، با یک کلیک روشن در دسترس است.','هر هغه څه چې اړتیا لرئ، په یوه روښانه کلیک کې.') ?></p></div></div>
+  <?php if($quickMode==='locked'): ?><a class="dashboard-panel-locked" href="<?= sanitize(ui_service_url('dashboard.quick_actions')) ?>"><i class="fa-solid fa-lock"></i><span><strong><?= __t('Quick operations are locked','عملیات مشترک قفل است','چټک عملیات بند دي') ?></strong><small><?= __t('Open service activation and contact options','فعال‌سازی و گزینه‌های تماس را باز کنید','د فعالولو او اړیکې اختیارونه پرانیزئ') ?></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+  <?php else: ?><div class="dashboard-action-grid">
+    <?php
+      ui_render_dashboard_action('sales','sales.php',__('btn_new_sale'),'fa-cash-register');
+      ui_render_dashboard_action('sales.invoices','invoices.php',__('btn_invoices_archive'),'fa-receipt');
+      ui_render_dashboard_action('mudaraba','mudaraba.php',__('btn_mudaraba'),'fa-handshake-angle');
+      ui_render_dashboard_action('purchases','stock_add.php',__('btn_add_stock'),'fa-circle-plus');
+      ui_render_dashboard_action('inventory','stock.php',__('btn_stock_list'),'fa-boxes-stacked');
+      ui_render_dashboard_action('debts','debts.php',__('btn_debts'),'fa-file-invoice');
+      ui_render_dashboard_action('reports','reports.php',__('btn_financial_reports'),'fa-chart-pie');
+    ?>
+  </div><?php endif ?>
+</section>
+<?php endif ?>
 
 <!-- MUDARABA PARTNERS LIVE PANEL IN DASHBOARD -->
-<div class="card" style="margin-bottom: 24px; border-top: 3px solid var(--success);">
+<?php if($mudarabaPanelMode!=='hidden'): ?>
+<div class="card" id="mudaraba-panel" style="margin-bottom: 24px; border-top: 3px solid var(--success);">
     <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
         <h3 class="card-title" style="color: var(--success);">
             <i class="fa-solid fa-handshake-angle ml-1"></i> <?= __('mudaraba_table_title') ?>
         </h3>
-        <a href="<?= BASE_URL ?>modules/mudaraba.php" class="btn btn-sm btn-secondary">
-            <i class="fa-solid <?= $currentDir === 'rtl' ? 'fa-arrow-left' : 'fa-arrow-right' ?> ml-1"></i> <?= __('mudaraba_manage_link') ?>
-        </a>
+        <?php if($mudarabaMainMode!=='hidden'): ?><a href="<?= sanitize($mudarabaMainMode==='locked'?ui_service_url('mudaraba'):BASE_URL.'modules/mudaraba.php') ?>" class="btn btn-sm btn-secondary">
+            <i class="fa-solid <?= $mudarabaMainMode==='locked'?'fa-lock':($currentDir === 'rtl' ? 'fa-arrow-left' : 'fa-arrow-right') ?> ml-1"></i> <?= __('mudaraba_manage_link') ?>
+        </a><?php endif ?>
     </div>
+    <?php if($mudarabaPanelMode==='locked'): ?><a class="dashboard-panel-locked" href="<?= sanitize(ui_service_url('dashboard.mudaraba_panel')) ?>"><i class="fa-solid fa-lock"></i><span><strong><?= __t('Mudaraba panel is locked','پنل مضاربت قفل است','د مضاربت پنل بند دی') ?></strong><small><?= __t('Open service activation and contact options','فعال‌سازی و گزینه‌های تماس را باز کنید','د فعالولو او اړیکې اختیارونه پرانیزئ') ?></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a><?php else: ?>
     <div class="table-responsive">
         <table class="table">
             <thead>
@@ -259,8 +105,8 @@ $recentSales = $recentSalesStmt->fetchAll();
                 <?php if (empty($mudarabaContracts)): ?>
                     <tr>
                         <td colspan="9" style="text-align: center; padding: 24px; color: var(--text-light);">
-                            <?= __('no_mudaraba_notice') ?> 
-                            <a href="<?= BASE_URL ?>modules/mudaraba.php" style="color: var(--info); font-weight: 700;"><?= __('add_first_mudaraba') ?></a>
+                            <?= __('no_mudaraba_notice') ?>
+                            <?php if($mudarabaMainMode==='enabled'): ?><a href="<?= BASE_URL ?>modules/mudaraba.php" style="color: var(--info); font-weight: 700;"><?= __('add_first_mudaraba') ?></a><?php endif ?>
                         </td>
                     </tr>
                 <?php else: ?>
@@ -303,9 +149,9 @@ $recentSales = $recentSalesStmt->fetchAll();
                                 <a href="<?= BASE_URL ?>print/mudaraba.php?id=<?= $mc['id'] ?>" target="_blank" class="btn btn-sm btn-secondary" title="<?= __('print') ?>">
                                     <i class="fa-solid fa-print"></i> PDF
                                 </a>
-                                <a href="<?= BASE_URL ?>modules/mudaraba.php" class="btn btn-sm btn-primary" title="<?= __('manage') ?>">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </a>
+                                <?php if($mudarabaMainMode!=='hidden'): ?><a href="<?= sanitize($mudarabaMainMode==='locked'?ui_service_url('mudaraba'):BASE_URL.'modules/mudaraba.php') ?>" class="btn btn-sm btn-primary" title="<?= __('manage') ?>">
+                                    <i class="fa-solid <?= $mudarabaMainMode==='locked'?'fa-lock':'fa-pen-to-square' ?>"></i>
+                                </a><?php endif ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -313,39 +159,43 @@ $recentSales = $recentSalesStmt->fetchAll();
             </tbody>
         </table>
     </div>
+    <?php endif ?>
 </div>
+<?php endif ?>
 
-<div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px;">
+<div class="dashboard-lower-grid" id="cash-flow">
     <!-- Shop Status & Financial Summary -->
+    <?php $cashFlowMode=domain_visibility('dashboard.cash_flow');if($cashFlowMode!=='hidden'): ?>
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">
                 <i class="fa-solid fa-chart-simple ml-1"></i> <?= __('cash_flow_status') ?>
             </h3>
-            <a href="<?= BASE_URL ?>modules/reports.php" class="btn btn-sm btn-secondary">
-                <i class="fa-solid fa-file-invoice"></i> <?= __('view_invoices_in_reports') ?>
-            </a>
+            <?php if($reportsMode!=='hidden'): ?><a href="<?= sanitize($reportsMode==='locked'?ui_service_url('reports'):BASE_URL.'modules/reports.php') ?>" class="btn btn-sm btn-secondary">
+                <i class="fa-solid <?= $reportsMode==='locked'?'fa-lock':'fa-file-invoice' ?>"></i> <?= __('view_invoices_in_reports') ?>
+            </a><?php endif ?>
         </div>
+        <?php if($cashFlowMode==='locked'): ?><a class="dashboard-panel-locked" href="<?= sanitize(ui_service_url('dashboard.cash_flow')) ?>"><i class="fa-solid fa-lock"></i><span><strong><?= __t('Financial summary is locked','خلاصهٔ مالی قفل است','مالي لنډیز بند دی') ?></strong><small><?= __t('Open service activation and contact options','فعال‌سازی و گزینه‌های تماس را باز کنید','د فعالولو او اړیکې اختیارونه پرانیزئ') ?></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a><?php else: ?>
         <div style="padding: 10px 0;">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 16px;">
-                <div style="background: var(--surface-muted); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+            <div class="dashboard-summary-grid">
+                <?php if(domain_can('dashboard.today_sales')): ?><div style="background: var(--surface-muted); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
                     <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 4px;"><?= __('today_invoice_sales') ?></div>
                     <div style="font-size: 17px; font-weight: 800; color: var(--info);"><?= format_money($metrics['today_sales']) ?></div>
                     <div style="font-size: 11px; color: var(--success); margin-top: 4px;"><i class="fa-solid fa-check-circle ml-1"></i> <?= __('transactions_recorded') ?></div>
-                </div>
+                </div><?php endif ?>
                 <div style="background: var(--danger-soft); padding: 12px; border-radius: 8px; border: 1px solid #fecaca;">
                     <div style="font-size: 11.5px; color: var(--danger); margin-bottom: 4px;"><?= __('today_damaged_goods') ?></div>
                     <div style="font-size: 17px; font-weight: 800; color: var(--danger);"><?= format_money($metrics['today_losses']) ?></div>
                     <div style="font-size: 11px; color: var(--danger); margin-top: 4px;"><i class="fa-solid fa-triangle-exclamation ml-1"></i> <?= __('deduction_from_stock_capital') ?></div>
                 </div>
-                <div style="background: var(--surface-muted); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <?php if(domain_can('dashboard.debts')): ?><div style="background: var(--surface-muted); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
                     <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 4px;"><?= __('market_receivables') ?></div>
                     <div style="font-size: 17px; font-weight: 800; color: var(--danger);"><?= format_money($metrics['total_outstanding_debts']) ?></div>
                     <div style="font-size: 11px; color: #eab308; margin-top: 4px;"><i class="fa-solid fa-clock ml-1"></i> <?= __('collectible_in_market') ?></div>
-                </div>
+                </div><?php endif ?>
             </div>
 
-            <div style="background: var(--info-soft); border: 1px solid #bfdbfe; border-radius: 10px; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
+            <?php if($reportsMode!=='hidden'): ?><div class="dashboard-report-banner">
                 <div>
                     <h4 style="font-size: 14px; font-weight: 700; color: var(--info); margin-bottom: 4px;">
                         <i class="fa-solid fa-receipt ml-1"></i> <?= __('full_reports_banner_title') ?>
@@ -354,12 +204,14 @@ $recentSales = $recentSalesStmt->fetchAll();
                         <?= __('full_reports_banner_desc') ?>
                     </p>
                 </div>
-                <a href="<?= BASE_URL ?>modules/reports.php" class="btn btn-primary btn-sm" style="white-space: nowrap;">
-                    <?= __('btn_reports_and_invoices') ?> <i class="fa-solid <?= $currentDir === 'rtl' ? 'fa-arrow-left' : 'fa-arrow-right' ?> mr-1"></i>
+                <a href="<?= sanitize($reportsMode==='locked'?ui_service_url('reports'):BASE_URL.'modules/reports.php') ?>" class="btn btn-primary btn-sm" style="white-space: nowrap;">
+                    <?= __('btn_reports_and_invoices') ?> <i class="fa-solid <?= $reportsMode==='locked'?'fa-lock':($currentDir === 'rtl' ? 'fa-arrow-left' : 'fa-arrow-right') ?> mr-1"></i>
                 </a>
-            </div>
+            </div><?php endif ?>
         </div>
+        <?php endif ?>
     </div>
+    <?php endif ?>
 
     <!-- Low Stock Alert Box -->
     <div class="card" data-permission="inventory.low_stock_alert" data-inventory-alert <?= ($showInventoryAlerts&&domain_visibility('inventory.low_stock_alert')!=='hidden')?'':'hidden' ?>>

@@ -22,7 +22,7 @@ function auth_check() {
     return true;
 }
 
-function auth_user() {return auth_check()?$GLOBALS['_auth_user']:null;}
+function auth_user() {if(!auth_check())return null;$preview=preview_state();return $preview['user']??$GLOBALS['_auth_user'];}
 function auth_is_admin(){ $user=auth_user();return $user&&in_array($user['role'],['admin','superadmin','super_admin'],true); }
 
 function auth_require($requiredRole=null,$allowLocked=false) {
@@ -36,9 +36,10 @@ function auth_require($requiredRole=null,$allowLocked=false) {
         redirect($url);
     }
     if($requiredRole&&!(($requiredRole==='admin'&&auth_is_admin())||auth_user()['role']===$requiredRole)){access_deny(403,'role_required',__t('Access denied.','دسترسی ندارید.','لاسرسی نشته.'));}
+    if(preview_active()&&($_SERVER['REQUEST_METHOD']??'GET')!=='GET')access_deny(403,'preview_read_only',__t('Preview is read-only. Exit preview to make real changes.','پیش‌نمایش فقط‌خواندنی است؛ برای تغییر واقعی از پیش‌نمایش خارج شوید.','کتنه یوازې لوستلې ده؛ د بدلون لپاره له کتنې ووځئ.'));
     security_maintenance_guard();
     access_require_password_change();
-    if(domain_is_central(auth_user()) && !totp_session_valid() && !in_array(basename($_SERVER['SCRIPT_NAME']??''),['verify.php','logout.php'],true)){if(access_json_request())access_deny(403,'mfa_required','Two-step verification required.');redirect(BASE_URL.'admin/verify.php');}
+    if(!preview_active()&&mfa_required(auth_user())&&!mfa_access_valid(auth_user())&&!in_array(basename($_SERVER['SCRIPT_NAME']??''),['verify.php','logout.php','change_password.php'],true)){if(access_json_request())access_deny(403,'mfa_required','Two-step verification required.');redirect(BASE_URL.(domain_is_central(auth_user())?'admin/verify.php':'modules/verify.php'));}
     if(function_exists('shop_find')){
         $shopOwner=auth_user();$shopId=(int)($shopOwner['shop_id']??0);
         if($shopId>0&&!access_super_role((string)$shopOwner['role'])){
@@ -98,4 +99,4 @@ function auth_logout() {
     session_destroy();
 }
 // The existing Office interface remains intact, behind primary account authentication.
-if(str_contains($_SERVER['SCRIPT_NAME']??'','/admin/')&&!in_array(basename($_SERVER['SCRIPT_NAME']),['office_2.php','secret_panel_786.php'],true))auth_require('admin');
+if(str_contains($_SERVER['SCRIPT_NAME']??'','/admin/')&&!in_array(basename($_SERVER['SCRIPT_NAME']),['office_2.php','secret_panel_786.php','user_preview.php'],true))auth_require('admin');

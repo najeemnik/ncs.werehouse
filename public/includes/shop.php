@@ -16,6 +16,7 @@
 /** The shop the current request works on. */
 function shop_current_id(): int {
     global $pdo;
+    $preview=preview_state();if($preview)return (int)$preview['branch_id'];
     if(empty($_SESSION['user_id']))return 0;
     $q=$pdo->prepare('SELECT id,role,shop_id FROM users WHERE id=?');$q->execute([(int)$_SESSION['user_id']]);$u=$q->fetch();
     if(!$u)return 0;

@@ -98,6 +98,7 @@ $currentScript = basename($_SERVER['SCRIPT_NAME']);
     <script type="application/json" id="nsc-access-config"><?= json_for_html(['module'=>$accessRoute[0]??null,'defaultAction'=>basename($_SERVER['SCRIPT_NAME'])==='stock_edit.php'?'edit':'create','services'=>$accessModes,'locked'=>__t('Locked by permissions','این کار اجازه ندارد','دا کار اجازه نه لري'),'partnershipPending'=>__t('Use the reviewed settlement accounts for partner payments.','برای پرداخت شریک از حساب تسویهٔ بررسی‌شده استفاده کنید.','د شریک تادیه د تایید شوې تصفیې له حسابه وکړئ.'),'partnershipSettlement'=>__t('Open settlement accounts','بازکردن حساب تسویه','د تصفیې حساب پرانیزئ'),'script'=>basename($_SERVER['SCRIPT_NAME'])]) ?></script>
     <script src="<?= BASE_URL ?>assets/js/access-ui.js?v=2" defer></script>
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/workflow.css?v=<?= APP_VERSION ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/workspace.css?v=<?= APP_VERSION ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/header.css?v=<?= APP_VERSION ?>">
     <script src="<?= BASE_URL ?>assets/js/header.js?v=<?= APP_VERSION ?>" defer></script>
 </head>
@@ -137,23 +138,21 @@ $currentScript = basename($_SERVER['SCRIPT_NAME']);
         </div>
 
         <nav class="sidebar-nav" aria-label="<?= __t('Main navigation','بخش‌های اصلی','اصلي برخې') ?>">
-        <?php
-        $nav=[
-          ['Overview','نمای عمومی','branches','portfolio.php'],['Dashboard','داشبورد','dashboard','../index.php'],
-          ['Sales','فروش','sales','sales.php'],['Sales invoices','بل‌های فروش','sales.invoices','invoices.php'],['Purchases','خرید','purchases','purchases.php'],['Purchase returns','برگشت خرید','purchases','purchase_returns.php'],
-          ['Inventory','گدام و موجودی','inventory','stock.php'],['Locations','موقعیت اجناس','inventory.locations','warehouse.php'],['Barcode labels','لیبل بارکُد','inventory.labels','barcode_guide.php'],
-          ['Stock movements & transfers','گردش و انتقال جنس','inventory','inventory_documents.php'],['Sales returns','برگشت فروش','sales','sales_returns.php'],['Customers','مشتریان','customers','customers.php'],['Receivables & payables','طلب‌ها و بدهی‌ها','debts','debts.php'],['Expenses','مصارف عملیاتی','expenses','expenses.php'],['Damage & losses','ضایعات اجناس','losses','losses.php'],
-          ['Cash & bank','صندوق و بانک','treasury','treasury.php'],['Currency exchange','تبدیل ارز','treasury.exchange','fx.php'],['Accounting books','دفاتر حسابداری','accounting','accounting.php'],['Corrections','اسناد اصلاحی','accounting.correct','corrections.php'],['Suppliers','عرضه‌کنندگان','suppliers','suppliers.php'],['Capital','سرمایه','capital','capital.php'],['Partners','شرکا','partners','partners.php'],['Mudaraba','مضاربت','mudaraba','mudaraba.php'],['Partner settlement','تسویهٔ شریک','mudaraba.settle','partnership_settlement.php'],['Reports','راپورها','reports','reports.php'],
-          ['Daily closing','بستن حساب روز','closings','closing.php'],['Business advisor','مشاور تجارت','ai','ai_advisor.php'],['Activity history','تاریخچهٔ فعالیت','audit','activity.php'],['Staff & permissions','کارمندان و صلاحیت‌ها','staff','management.php'],
-          ['Settings','تنظیمات','settings','settings.php'],['About','دربارهٔ نرم‌افزار','about','about.php']];
-        foreach($nav as [$en,$da,$feature,$file]){
-          $mode=domain_visibility($feature);if($mode==='hidden')continue;
-          $label=__t($en,$da,$en);
-          if($mode==='locked'){echo '<span class="nav-link service-locked" aria-disabled="true"><i class="fa-solid fa-lock" aria-hidden="true"></i><span>'.sanitize($label).' · '.__t('Locked','قفل','قفل').'</span></span>';continue;}
-          $url=$file==='../index.php'?BASE_URL.'index.php':BASE_URL.'modules/'.$file;
-          echo '<a class="nav-link '.($currentScript===basename($file)?'active':'').'" href="'.sanitize($url).'"><span>'.sanitize($label).'</span></a>';
-        }
+        <?php foreach(ui_service_groups() as $group):
+          if($group['feature']&&domain_visibility($group['feature'])==='hidden')continue;
+          $visible=[];$active=false;$allLocked=true;
+          foreach($group['items'] as $item){$mode=domain_visibility($item['feature']);if($mode==='hidden')continue;$item['mode']=$mode;$visible[]=$item;if($mode!=='locked')$allLocked=false;if($currentScript===basename($item['file'])||($currentScript==='service.php'&&($_GET['feature']??'')===$item['feature']))$active=true;}
+          if(!$visible)continue;if($group['id']==='dashboard'&&$currentScript==='index.php')$active=true;
         ?>
+        <details class="nav-group" <?= $active?'open':'' ?>>
+          <summary class="nav-group-summary"><span class="nav-group-leading"><i class="fa-solid <?= sanitize($group['icon']) ?>" aria-hidden="true"></i><span><?= sanitize(__t($group['en'],$group['da'],$group['en'])) ?></span></span><span class="nav-group-meta"><?= count($visible) ?><?php if($allLocked):?> <i class="fa-solid fa-lock" aria-label="Locked"></i><?php else:?><i class="fa-solid fa-chevron-down nav-group-chevron" aria-hidden="true"></i><?php endif ?></span></summary>
+          <div class="nav-group-items">
+          <?php foreach($visible as $item):$label=__t($item['en'],$item['da'],$item['en']);$locked=$item['mode']==='locked'; ?>
+            <a class="nav-link <?= $currentScript===basename($item['file'])?'active':'' ?> <?= $locked?'service-locked':'' ?>" href="<?= sanitize(ui_item_url($item,$item['mode'])) ?>"><i class="fa-solid <?= $locked?'fa-lock':sanitize($item['icon']) ?>" aria-hidden="true"></i><span><?= sanitize($label) ?></span><?php if($locked):?><i class="fa-solid fa-arrow-up-right-from-square nav-lock-arrow" aria-hidden="true"></i><?php endif ?></a>
+          <?php endforeach ?>
+          </div>
+        </details>
+        <?php endforeach ?>
         </nav>
 
         <div class="sidebar-footer">
@@ -169,11 +168,11 @@ $currentScript = basename($_SERVER['SCRIPT_NAME']);
                         </div>
                     </div>
                 </div>
-                <button type="button" onclick="lockShopScreen();" class="logout-btn" style="background: var(--warning-soft); color: var(--warning); border: 1px solid #fde68a;" title="<?= __('lock_shop_screen') ?>">
+                <?php if(!preview_active()): ?><button type="button" onclick="lockShopScreen();" class="logout-btn" style="background: var(--warning-soft); color: var(--warning); border: 1px solid #fde68a;" title="<?= __('lock_shop_screen') ?>">
                     <i class="fa-solid fa-lock"></i>
-                </button>
+                </button><?php endif; ?>
             </div>
-            <button type="submit" form="accountLogoutForm" class="btn btn-secondary btn-sm" style="width:100%;margin-top:12px"><i class="fa-solid fa-arrow-right-from-bracket"></i> <?= __t('Sign out','خروج از حساب','له حسابه وتل') ?></button>
+            <?php if(!preview_active()): ?><button type="submit" form="accountLogoutForm" class="btn btn-secondary btn-sm" style="width:100%;margin-top:12px"><i class="fa-solid fa-arrow-right-from-bracket"></i> <?= __t('Sign out','خروج از حساب','له حسابه وتل') ?></button><?php endif; ?>
         </div>
     </aside>
 
@@ -182,6 +181,14 @@ $currentScript = basename($_SERVER['SCRIPT_NAME']);
 
     <!-- Main Content Area -->
     <main class="app-main" id="mainContent" tabindex="-1">
+        <?php if($preview=preview_state()): $previewBranch=shop_find((int)$preview['branch_id']); ?>
+        <div class="alert alert-warning" role="status" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:2px solid #f59e0b">
+            <strong><i class="fa-solid fa-eye"></i> <?= __t('READ-ONLY USER PREVIEW','پیش‌نمایش فقط‌خواندنی یوزر','د کارن یوازې لوستنۍ کتنه') ?></strong>
+            <span><?= sanitize($preview['user']['fullname'].' · '.$preview['user']['username'].' · '.($previewBranch['name']??'')) ?></span>
+            <span><?= __t('No sale, payment, setting or other POST change can be saved.','هیچ فروش، پرداخت، تنظیم یا تغییر POST ذخیره نمی‌شود.','هېڅ پلور، تادیه یا بدلون خوندي نه کېږي.') ?></span>
+            <form method="post" action="<?= BASE_URL ?>admin/user_preview.php" style="margin-inline-start:auto"><?= csrf_field() ?><input type="hidden" name="action" value="stop"><button class="btn btn-primary" type="submit"><?= __t('Exit preview','خروج از پیش‌نمایش','له کتنې وتل') ?></button></form>
+        </div>
+        <?php endif; ?>
         <?php
         // A central Office 2 administrator may work inside another shop; make that explicit.
         $contextShopId = (int)($_SESSION['shop_context_id'] ?? 0);
@@ -209,7 +216,7 @@ $currentScript = basename($_SERVER['SCRIPT_NAME']);
             <div class="topbar-actions" role="group" aria-label="<?= __t('Page tools','گزینه‌های صفحه','د پاڼې وسیلې') ?>">
                 <?php $quickSaleMode=domain_visibility('sales'); if($quickSaleMode!=='hidden'): ?>
                     <?php if($quickSaleMode==='locked'): ?>
-                        <span class="header-control header-sale service-locked" aria-disabled="true" aria-label="<?= sanitize(__('quick_sell').' · '.__t('Locked','قفل','قفل')) ?>" title="<?= sanitize(__('quick_sell').' · '.__t('Locked','قفل','قفل')) ?>"><i class="fa-solid fa-lock" aria-hidden="true"></i><span class="header-action-text"><?= __('quick_sell') ?></span></span>
+                        <a href="<?= sanitize(ui_service_url('sales')) ?>" class="header-control header-sale service-locked" aria-label="<?= sanitize(__('quick_sell').' · '.__t('Locked','قفل','قفل')) ?>" title="<?= sanitize(__('quick_sell').' · '.__t('Locked','قفل','قفل')) ?>"><i class="fa-solid fa-lock" aria-hidden="true"></i><span class="header-action-text"><?= __('quick_sell') ?></span></a>
                     <?php else: ?>
                         <a href="<?= BASE_URL ?>modules/sales.php" class="header-control header-sale" aria-label="<?= __('quick_sell') ?>" title="<?= __('quick_sell') ?>"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i><span class="header-action-text"><?= __('quick_sell') ?></span></a>
                     <?php endif; ?>
@@ -229,7 +236,7 @@ $currentScript = basename($_SERVER['SCRIPT_NAME']);
                         </div>
                     </div>
                     <button type="button" data-toggle-mode class="header-control header-appearance" aria-label="<?= __t('Toggle light/dark mode','تغییر حالت روشن و تاریک','رڼا او تیاره بڼه بدلول') ?>" title="<?= __t('Light / dark','روشن / تاریک','رڼا / تیاره') ?>"><i class="fa-regular fa-moon" aria-hidden="true"></i><span class="header-panel-label"><?= __t('Light / dark','روشن / تاریک','رڼا / تیاره') ?></span></button>
-                    <button type="button" data-header-lock class="header-control header-lock" aria-label="<?= __('lock_shop_screen') ?>" title="<?= __('lock_shop_screen') ?>"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span class="header-panel-label"><?= __('lock_shop_screen') ?></span></button>
+                    <?php if(!preview_active()): ?><button type="button" data-header-lock class="header-control header-lock" aria-label="<?= __('lock_shop_screen') ?>" title="<?= __('lock_shop_screen') ?>"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span class="header-panel-label"><?= __('lock_shop_screen') ?></span></button><?php endif; ?>
                 </div>
             </div>
         </header>

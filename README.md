@@ -1,6 +1,6 @@
 # Nik Smart Count — Warehousing
 
-Multi-business PHP application developed from the user-supplied `werehouse.zip`. Author: **Ahmad Najeem Nik**, +93 783 788 278. Version 2.3.3 separates private installation-key verification from administrator credentials, fixes installer retries and retains the 2.3.2 correction-aware reports without CREATE VIEW. The uploaded database, live credentials and sessions are excluded.
+Multi-business PHP application developed from the user-supplied `werehouse.zip`. Author: **Ahmad Najeem Nik**, +93 783 788 278. Version 2.3.4 adds central business status/subscription/contact controls, business-wide branch/staff ceilings and retry-safe sales. It also scopes purchase dropdowns and profit-known contract updates to the active branch. Earlier installer and no-CREATE VIEW repairs remain included. Uploaded databases, live credentials and sessions are excluded.
 
 ## Implemented
 
@@ -11,7 +11,8 @@ Multi-business PHP application developed from the user-supplied `werehouse.zip`.
 
 - Compact responsive header: one row on phones and desktop, mobile tools disclosure, accessible language controls, working account-currency navigation and permission-aware quick sale.
 
-- Business → branches → assigned employees; central Office 2 administration separated from owners. Branch comparison and activity history.
+- Business → branches → assigned employees; central Office 2 administration separated from owners. Central-only business status, contact details, subscription expiry and business-wide branch/staff limits; branch comparison and activity history.
+- Retry-safe POS submissions bound to branch, request key and exact content. An identical retry opens the recorded invoice without duplicating stock movements or journals; altered reuse is rejected.
 - Central business/user policies and owner employee policies, service/action permissions, hidden or locked presentation and atomic daily/monthly request limits. Employee AI requires both central and owner approval, within the owner's central ceiling.
 - Central TOTP with expiry, throttling and replay protection. Password rotation, session revocation, CSRF checks and branch-scoped mutations.
 - Private-token installation with database, first central administrator and verified authenticator enrollment. No default accounts. An authenticated central setup page holds deferred AI, Google and contact settings encrypted outside the public root.

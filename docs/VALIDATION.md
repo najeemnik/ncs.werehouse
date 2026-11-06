@@ -1,8 +1,20 @@
-# Validation — 2.3.3 installer repair, 2026-11-06 (Asia/Kabul)
+# Validation — 2.3.4 business controls and sale retries, 2026-11-06 (Asia/Kabul)
 
+## Checks executed for 2.3.4
 
+These are new isolated **PHP 8.4.27 WebAssembly / SQLite** checks, not an Apache, MariaDB or ProFreeHost deployment test. The WASM runtime is an external test tool and is not bundled with the application.
 
-## Checks for 2.3.3
+- All 152 PHP files under `public/` and `tests/` passed PHP 8.4 syntax checks.
+- `business-controls.php` passed: repeatable migrations 022/023, central contact/subscription/limit updates, zero-as-unlimited, owner denial for central controls, branch/staff ceilings, lock and expiry enforcement, branch-scoped sale keys, altered-content rejection and source guards for the two purchase dropdown queries and contract update. The central management screen was also rendered and checked for the real business-control form and selected-business invoice-design link.
+- The real POS handler was executed in four separate PHP requests: initial sale, identical retry, altered reuse and verification. The identical retry produced one invoice, one accounting document and one stock movement; quantity changed from 5 to 3 and inventory value from 50 to 30 exactly once. Reusing the key with an altered paid amount showed the explicit rejection and changed no recorded totals.
+- Fresh/isolated regression runs completed for security, transfers, inventory/backup, purchase returns, FX, corrections, partnerships, invoice design and staff limits. The new central business checks also passed after correcting the staff-count membership query.
+- Earlier WASM attempts could not complete `finance` or `invoice-verification` because that runtime lacks Sodium; `policies` also has a non-CLI SAPI difference. Those are explicitly **not** counted as new passes. No MariaDB, Apache, browser, real host, external AI/Google/mail or concurrent-production-load check was performed in this patch.
+
+Migration 022 adds optional business contact/subscription fields and branch/staff ceilings without changing existing values. Migration 023 adds nullable sale request key/content hash columns and a unique `(shop_id, sale_request_key)` index; historical sales remain nullable. The active request handler now supplies these values. Limits are enforced in the server-side management service, with a business-row lock on MySQL to serialize creation against ceiling changes. Central users retain their existing central-only invoice-design path.
+
+The checks do not prove zero vulnerabilities or complete accounting coverage. The actual host still needs a backup, patch upload, automatic migration on the first authenticated request, and Apache/MariaDB smoke tests. Do not replace `config/hosting.php`, private keys, `.htaccess` files or existing runtime data during the update.
+
+## Historical checks for 2.3.3
 
 The diagnostic and preparation trimmed copied key whitespace while the installer compared raw input. Key verification is now shared and consistent. It is a separate CSRF-protected step; the verified session stores only a timestamp/binding and expires after 15 minutes. Administrator autofill fields are absent from the key step, and the raw key field is absent from the account step. Key rotation or a different runtime directory invalidates authorization. Existing configured accounts are detected with read-only queries after key verification, before displaying an administrator-creation form. A candidate nonempty database is rejected before its credentials are persisted.
 

@@ -69,7 +69,7 @@ function currency_record($entity,$id,$context,array $amounts,$event='create',arr
         }
         elseif(in_array($event,['edit','adjustment','payment_edit'],true))currency_assert_record($entity,$id,$context['code']);
     }
-    if($entity==='mudaraba_contracts'&&!($context['profit_known']??true))$pdo->prepare('UPDATE mudaraba_contracts SET profit_known=0 WHERE id=? AND (currency_code=? OR currency_code=?)')->execute([(int)$id,$context['code'],$context['cost_currency']??$context['code']]);
+    if($entity==='mudaraba_contracts'&&!($context['profit_known']??true))$pdo->prepare('UPDATE mudaraba_contracts SET profit_known=0 WHERE id=? AND (currency_code=? OR currency_code=?) AND shop_id=?')->execute([(int)$id,$context['code'],$context['cost_currency']??$context['code'],shop_id()]);
     $_SESSION['report_currency']=$context['code'];
     $pdo->prepare('INSERT INTO currency_transactions (entity_type,entity_id,event_type,currency_code,exchange_rate,ledger_currency,original_amounts,ledger_amounts,created_by,accounting_mode,profit_known,related_currency,shop_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,'.(function_exists('shop_id')?(int)shop_id():1).')')->execute([$entity,(int)$id,$event,$context['code'],'1.00000000',$context['code'],json_encode($ledger,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),json_encode($ledger,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),$_SESSION['user_id']??null,'native',($context['profit_known']??true)?1:0,$context['cost_currency']??null]);
     if(function_exists('finance_currency_event'))finance_currency_event($entity,(int)$id,$event);

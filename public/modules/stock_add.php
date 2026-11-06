@@ -14,7 +14,7 @@ $success = '';
 // Fetch categories, partners & active mudaraba contracts for selection dropdowns
 $categories = $pdo->query("SELECT * FROM categories WHERE " . shop_sql() . " ORDER BY name ASC")->fetchAll();
 $partners = $pdo->query("SELECT * FROM partners WHERE status = 'active' AND " . shop_sql() . " ORDER BY name ASC")->fetchAll();
-$mudarabaContracts = $pdo->query("SELECT id, partner_name, project_title FROM mudaraba_contracts WHERE status = 'active' ORDER BY id DESC")->fetchAll();
+$mudarabaContracts = $pdo->query("SELECT id, partner_name, project_title FROM mudaraba_contracts WHERE status = 'active' AND " . shop_sql() . " ORDER BY id DESC")->fetchAll();
 
 $purchaseMode = ($_GET['mode'] ?? $_POST['purchase_mode'] ?? 'single') === 'lot' ? 'lot' : 'single';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (Throwable $e) { $error = public_error($e); }
     }
 }
-$inventoryOptions = $pdo->query('SELECT id,name,category_id,unit,sku,barcode,specifications,partner_id,mudaraba_id,currency_code FROM stock ORDER BY name')->fetchAll();
+$inventoryOptions = $pdo->query('SELECT id,name,category_id,unit,sku,barcode,specifications,partner_id,mudaraba_id,currency_code FROM stock WHERE ' . shop_sql() . ' ORDER BY name')->fetchAll();
 
 ?>
 

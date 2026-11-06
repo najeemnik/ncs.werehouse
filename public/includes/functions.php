@@ -18,6 +18,7 @@ require_once __DIR__.'/accounting.php';
 require_once __DIR__.'/returns.php';
 require_once __DIR__.'/fx.php';require_once __DIR__.'/corrections.php';require_once __DIR__.'/partnerships.php';
 require_once __DIR__.'/backup_files.php';
+require_once __DIR__.'/sale_requests.php';
 
 /**
  * Normalizes Persian (۰-۹) and Arabic (٠-٩) digits to standard ASCII English digits (0-9).

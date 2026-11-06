@@ -28,13 +28,16 @@ function access_ensure_profile($id) {
 }
 function access_super_role($role){return in_array($role,['superadmin','super_admin'],true);}
 function access_account_available(array $user) {
-    $p=access_profile($user['id']);
+    global $pdo;$p=access_profile($user['id']);
     if($user['status']!=='active'||(int)$p['is_locked'])return false;
     // Administrators of Office 2 must be able to renew subscriptions from Office 2.
     if(access_super_role($user['role']))return true;
     // A locked or expired shop blocks its own accounts, never the central Office 2 accounts.
     $shopId=(int)($user['shop_id']??0);
-    if($shopId>0&&function_exists('shop_find')){$shop=shop_find($shopId);if($shop&&!shop_is_operational($shop))return false;}
+    if($shopId>0&&function_exists('shop_find')){
+        $shop=shop_find($shopId);if($shop&&!shop_is_operational($shop))return false;
+        if($shop&&!empty($shop['business_id'])){$q=$pdo->prepare('SELECT * FROM businesses WHERE id=?');$q->execute([(int)$shop['business_id']]);$business=$q->fetch();if(!$business||!domain_business_operational($business))return false;}
+    }
     return (int)$p['subscription_active']===1&&(!$p['subscription_expires_at']||strcmp($p['subscription_expires_at'],date('Y-m-d H:i:s'))>0);
 }
 /**

@@ -1,10 +1,16 @@
 <?php
 /** Authorization always runs on the server, including direct URLs and POST requests. */
 function domain_is_central(?array $u): bool {return $u && in_array($u['role'],['superadmin','super_admin'],true) && empty($u['shop_id']);}
-function domain_branch(int $id): ?array {global $pdo;$q=$pdo->prepare('SELECT s.*,b.owner_user_id AS business_owner,b.status AS business_status FROM shops s JOIN businesses b ON b.id=s.business_id WHERE s.id=?');$q->execute([$id]);return $q->fetch()?:null;}
+function domain_branch(int $id): ?array {global $pdo;$q=$pdo->prepare('SELECT s.*,b.owner_user_id AS business_owner,b.status AS business_status,b.subscription_active AS business_subscription_active,b.subscription_expires_at AS business_subscription_expires_at FROM shops s JOIN businesses b ON b.id=s.business_id WHERE s.id=?');$q->execute([$id]);return $q->fetch()?:null;}
+function domain_business_operational(array $business): bool {
+    if(($business['status']??'active')!=='active'||(int)($business['subscription_active']??1)!==1)return false;
+    $expires=trim((string)($business['subscription_expires_at']??''));
+    return $expires===''||strcmp($expires,date('Y-m-d H:i:s'))>0;
+}
 function domain_branch_allowed(array $u,int $id): bool {
     global $pdo;$s=domain_branch($id);if(!$s)return false;
     if(domain_is_central($u))return true;
+    if(($s['business_status']??'')!=='active'||!(int)($s['business_subscription_active']??1)||(!empty($s['business_subscription_expires_at'])&&strcmp($s['business_subscription_expires_at'],date('Y-m-d H:i:s'))<=0))return false;
     if((int)$s['business_owner']>0){$q=$pdo->prepare('SELECT u.status,a.is_locked,a.subscription_active,a.subscription_expires_at FROM users u LEFT JOIN user_access a ON a.user_id=u.id WHERE u.id=?');$q->execute([$s['business_owner']]);$owner=$q->fetch();if(!$owner||$owner['status']!=='active'||(int)$owner['is_locked']||($owner['subscription_active']!==null&&!(int)$owner['subscription_active'])||($owner['subscription_expires_at']&&$owner['subscription_expires_at']<date('Y-m-d H:i:s')))return false;}
     if(!shop_is_operational($s)||$s['business_status']!=='active')return false;
     if((int)$s['business_owner']===(int)$u['id'])return true;

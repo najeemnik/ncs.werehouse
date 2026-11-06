@@ -1,9 +1,9 @@
 <?php
 /** Optional central-only, read-only view of a tenant account. The original admin session never changes. */
 function preview_original_user(): ?array {
-    global $pdo;if(empty($_SESSION['authenticated'])||empty($_SESSION['user_id'])||!totp_session_valid())return null;
+    global $pdo;if(empty($_SESSION['authenticated'])||empty($_SESSION['user_id']))return null;
     $q=$pdo->prepare('SELECT id,username,fullname,role,status,shop_id FROM users WHERE id=?');$q->execute([(int)$_SESSION['user_id']]);$u=$q->fetch();
-    return $u&&domain_is_central($u)&&$u['status']==='active'?$u:null;
+    return $u&&domain_is_central($u)&&$u['status']==='active'&&mfa_access_valid($u)?$u:null;
 }
 function preview_state(): ?array {
     if(array_key_exists('_user_preview_state',$GLOBALS))return $GLOBALS['_user_preview_state'];

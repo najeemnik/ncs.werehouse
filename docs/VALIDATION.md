@@ -1,4 +1,17 @@
-# Validation — 2.3.5 guided access and read-only preview, 2026-11-06 (Asia/Kabul)
+# Validation — 2.3.6 Authenticator and trusted devices, 2026-11-06 (Asia/Kabul)
+
+## Checks executed for 2.3.6
+
+The new checks used isolated PHP 8.4 WebAssembly and SQLite, not the live host. All changed PHP files passed syntax checks and `git diff --check` passed. The `security` regression suite and new `mfa` suite completed successfully.
+
+- Tenant enrollment required a valid current six-digit code; a new session then required MFA.
+- A trusted cookie restored access without another code. The database contained only SHA-256 token/agent hashes, never the raw token.
+- The trusted-device expiry was approximately 2,592,000 seconds; an expired row and a changed browser agent were rejected, while the original agent was accepted.
+- Owner denial disabled employee MFA access, including an existing MFA session. An inactive employee could not use the service.
+- Server-side revocation invalidated the cookie. Central lost-phone recovery removed the tenant secret and every device.
+- Migration 024 was repeatable. The ordinary password/security page and password-change action retained their original permissions; only Authenticator mutations require `settings.mfa`.
+
+Real Apache/MariaDB, browser cookie behavior and HTTPS on the user's host remain deployment checks. No external Authenticator service is contacted: codes are generated and verified locally using RFC 6238.
 
 ## Checks executed for 2.3.5
 

@@ -1,4 +1,4 @@
-# Installation, upgrade and integrations — 2.3.5
+# Installation, upgrade and integrations — 2.3.6
 
 Restricted hosts: [browser installation guide](SHARED_HOST_DA.md), [protected storage assumptions and later migration](SHARED_HOST_STORAGE.md). The default outside-root deployment below remains unchanged; protected in-root storage requires an explicit individual profile and owner-authorized HTTP-denial checks.
 
@@ -37,6 +37,8 @@ Configure MySQL through `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`, o
 Migrations 007–019 preserve source business records. Existing shops remain separate businesses rather than guessing common ownership. Verify owners, branch memberships and policies. Historical noncentral accounts without a shop are attached to original shop 1; central users remain separate. Known demonstration passwords are quarantined: rotate privately using `bin/rotate-account.php` and `NIKXOR_RESET_USERNAME`/`NIKXOR_RESET_PASSWORD`.
 
 Migration 009 rebuilds SQLite branch uniqueness transactionally. Migration 010 adds accounting and partial returns and rebuilds SQLite return uniqueness; MySQL DDL needs staging verification and an independent rollback backup. Migration 011 reserves new transfer requests; old pending requests are marked unreserved and recheck availability at receipt. Migration 012 adds retry-safe fund-account request keys. Historical movements, profits and cash are not silently reconstructed. Legacy debt/invoice settlement creates an explicit balance-opening adjustment, not fictional historical receipts.
+
+Version 2.3.6 adds migration 024 for hashed, browser-bound trusted-device tokens with fixed 30-day expiry. It does not replace users, passwords, Authenticator seeds or business records. Tenant users can enroll through Settings → Account security when permitted; employee access requires both central and owner approval. Office 2 → Users → Reset Authenticator removes a tenant user's lost-phone seed and trusted devices and revokes sessions. Existing databases must use the normal update path, not the fresh installer.
 
 Version 2.3.5 needs no additional migration beyond 022–023. Use **Owners, employees & permissions** for tenant account creation. Office 2 → Users → Business & assigned branch repairs an existing unassigned account after the correct branch is verified. Central quick presets establish ordinary tenant access; employee AI still requires separate owner approval. **Read-only user preview** is optional and is never the default login destination. It blocks POST changes and quota usage; use its exit button to return to the real central workspace.
 

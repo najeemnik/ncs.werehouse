@@ -1,6 +1,6 @@
 # Nik Smart Count — Warehousing
 
-Multi-business PHP application developed from the user-supplied `werehouse.zip`. Author: **Ahmad Najeem Nik**, +93 783 788 278. Version 2.3.5 adds guided full/read-only/custom user permissions, visible-lock versus hidden-lock modes, branch assignment for legacy users and an optional central read-only preview of any assigned business user. Version 2.3.4 business controls and retry-safe sales remain included, along with the earlier installer and no-CREATE VIEW repairs. Uploaded databases, live credentials and sessions are excluded.
+Multi-business PHP application developed from the user-supplied `werehouse.zip`. Author: **Ahmad Najeem Nik**, +93 783 788 278. Version 2.3.6 adds optional Google Authenticator enrollment for tenant owners and employees, central/owner-controlled employee access, 30-day browser-bound trusted devices and audited lost-phone recovery. Central Office 2 keeps mandatory two-step verification. Version 2.3.5 guided permissions and read-only preview, plus version 2.3.4 business controls and retry-safe sales, remain included. Uploaded databases, live credentials and sessions are excluded.
 
 ## Implemented
 
@@ -16,7 +16,7 @@ Multi-business PHP application developed from the user-supplied `werehouse.zip`.
 - Guided full/read-only/custom permissions for central and owners. Every feature can be enabled, visibly locked, or locked and hidden. Tenant users require an assigned business branch; legacy unassigned accounts can be repaired centrally.
 - Optional central user preview uses the selected user's menus, branch and permissions without replacing the administrator identity. POST changes and quota consumption are blocked, with a persistent exit control.
 - Central business/user policies and owner employee policies, service/action permissions, hidden or locked presentation and atomic daily/monthly request limits. Employee AI requires both central and owner approval, within the owner's central ceiling.
-- Central TOTP with expiry, throttling and replay protection. Password rotation, session revocation, CSRF checks and branch-scoped mutations.
+- Central and tenant TOTP with expiry, throttling and replay protection. Optional tenant enrollment, 30-day trusted devices, central/owner employee approval, lost-phone reset and device revocation on password rotation. Password rotation, session revocation, CSRF checks and branch-scoped mutations.
 - Private-token installation with database, first central administrator and verified authenticator enrollment. No default accounts. An authenticated central setup page holds deferred AI, Google and contact settings encrypted outside the public root.
 - Fixed-decimal double-entry posting for supported new purchase, sale, cost, expense, damage, cash/bank, capital, transfer and return documents. Per-currency trial balance, financial position and net income; verified openings, manual noncash journal reversal and financial-period locking.
 - Reviewed partnership principal/profit/recovery accounts, actual funding/repayments, approved distributed returns, verified profit amendments, closing and explicit ownership release for settled contract goods.

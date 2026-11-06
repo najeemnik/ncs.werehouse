@@ -4,7 +4,7 @@ require_once __DIR__.'/auth.php';
 require_once __DIR__.'/office2_shops.php';
 function office2_url(){return BASE_URL.'admin/office_2.php';}
 function office2_authorized() {
-    $u=auth_user();return $u && domain_is_central($u) && totp_session_valid() && empty($_SESSION['screen_locked']) && !(int)access_profile($u['id'])['must_change_password'];
+    $u=auth_user();return $u && domain_is_central($u) && mfa_access_valid($u) && empty($_SESSION['screen_locked']) && !(int)access_profile($u['id'])['must_change_password'];
 }
 function office2_actor() {
     if(!office2_authorized())throw new RuntimeException(__t('Office 2 authorization is required.','مجوز دفتر دو لازم است.','د دفتر دو اجازه اړینه ده.'),403);
@@ -101,7 +101,7 @@ function office2_mutate($action,array $p,array $files=[]) {
     global $pdo;$actor=office2_actor();
     if(!csrf_verify($p['csrf_token']??''))throw new RuntimeException(__t('Invalid form session. Refresh and try again.','نشست فرم نامعتبر است؛ صفحه را تازه کنید.','د فورم ناسته ناسمه ده؛ پاڼه تازه کړئ.'),403);
     if(!is_string($action))throw new InvalidArgumentException('Invalid action.');
-    $targetActions=['edit_user','account_state','reset_password','save_permissions','save_subscription','renew_subscription','save_ai','reset_ai','assign_user_branch'];
+    $targetActions=['edit_user','account_state','reset_password','save_permissions','save_subscription','renew_subscription','save_ai','reset_ai','assign_user_branch','reset_user_mfa'];
     $target=in_array($action,$targetActions,true)?office2_target($p['user_id']??'') : null;
     if(in_array($action,['reset_password','change_master_pin','factory_reset_database','reset_initial_setup','create_shop','create_shop_employee'],true)||($action==='edit_user'&&($p['role']??'')!==$target['role'])||($action==='create_user'&&access_super_role($p['role']??'')))office2_reauthenticate($p);
     if($action==='factory_reset_database')return office2_factory_reset($p,$actor);
@@ -132,6 +132,9 @@ function office2_mutate($action,array $p,array $files=[]) {
                 if(!$branch)throw new InvalidArgumentException(__t('Choose a valid business branch.','یک شعبهٔ معتبر تجارت انتخاب کنید.','د سوداګرۍ سمه څانګه وټاکئ.'));
                 $pdo->prepare('UPDATE users SET shop_id=? WHERE id=?')->execute([(int)$branchId,$id]);$pdo->prepare('DELETE FROM branch_memberships WHERE user_id=?')->execute([$id]);$pdo->prepare('INSERT INTO branch_memberships (user_id,shop_id) VALUES (?,?)')->execute([$id,(int)$branchId]);
                 access_ensure_profile($id);office2_revoke($id);office2_audit('assign_user_branch',$id,['shop_id'=>(int)$branchId,'business_id'=>(int)$branch['business_id']]);break;
+            case 'reset_user_mfa':
+                if(domain_is_central($target))throw new InvalidArgumentException(__t('Central authenticator recovery requires protected host recovery, not this tenant reset.','بازیابی تأییدکنندهٔ مرکزی از مسیر محفوظ هاست انجام می‌شود، نه این بازنشانی تجاری.','د مرکزي تایید بیا رغونه له هاسته ده.'));
+                totp_secret_remove($id);trusted_device_revoke_user($id);$pdo->prepare('DELETE FROM settings WHERE setting_key=?')->execute(['security.totp_counter.'.$id]);office2_revoke($id);office2_audit('reset_user_mfa',$id,['trusted_devices_revoked'=>true]);break;
             case 'account_state':
                 $status=office2_text($p,'status',20,true);$locked=office2_bool($p,'is_locked');if(!in_array($status,['active','inactive'],true))throw new InvalidArgumentException('Invalid account status.');
                 office2_guard_admin($target,$target['role'],$status,$locked);access_ensure_profile($id);
@@ -139,7 +142,7 @@ function office2_mutate($action,array $p,array $files=[]) {
             case 'reset_password':
                 if($id===(int)$actor['id'])throw new InvalidArgumentException(__t('Use Change my password for your own account.','برای حساب خود از «تغییر رمز من» استفاده کنید.','د خپل حساب لپاره خپل رمز بدلول وکاروئ.'));
                 $password=$p['new_password']??'';security_validate_new_password($password,$p['confirm_password']??'');
-                $pdo->prepare('UPDATE users SET password=? WHERE id=?')->execute([password_hash($password,PASSWORD_DEFAULT),$id]);access_ensure_profile($id);$pdo->prepare('UPDATE user_access SET must_change_password=1,updated_at=CURRENT_TIMESTAMP WHERE user_id=?')->execute([$id]);office2_revoke($id);office2_audit($action,$id,['forced_change'=>true]);break;
+                $pdo->prepare('UPDATE users SET password=? WHERE id=?')->execute([password_hash($password,PASSWORD_DEFAULT),$id]);access_ensure_profile($id);$pdo->prepare('UPDATE user_access SET must_change_password=1,updated_at=CURRENT_TIMESTAMP WHERE user_id=?')->execute([$id]);trusted_device_revoke_user($id);office2_revoke($id);office2_audit($action,$id,['forced_change'=>true]);break;
             case 'save_permissions':
                 if(!is_array($p['features']??null)||count($p['features'])>100)throw new InvalidArgumentException('Invalid permission selection.');
                 foreach($p['features'] as $key=>$allowed)office2_set_feature($id,$key,$allowed);

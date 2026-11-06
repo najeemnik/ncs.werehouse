@@ -39,7 +39,7 @@ function auth_require($requiredRole=null,$allowLocked=false) {
     if(preview_active()&&($_SERVER['REQUEST_METHOD']??'GET')!=='GET')access_deny(403,'preview_read_only',__t('Preview is read-only. Exit preview to make real changes.','پیش‌نمایش فقط‌خواندنی است؛ برای تغییر واقعی از پیش‌نمایش خارج شوید.','کتنه یوازې لوستلې ده؛ د بدلون لپاره له کتنې ووځئ.'));
     security_maintenance_guard();
     access_require_password_change();
-    if(domain_is_central(auth_user()) && !totp_session_valid() && !in_array(basename($_SERVER['SCRIPT_NAME']??''),['verify.php','logout.php'],true)){if(access_json_request())access_deny(403,'mfa_required','Two-step verification required.');redirect(BASE_URL.'admin/verify.php');}
+    if(!preview_active()&&mfa_required(auth_user())&&!mfa_access_valid(auth_user())&&!in_array(basename($_SERVER['SCRIPT_NAME']??''),['verify.php','logout.php','change_password.php'],true)){if(access_json_request())access_deny(403,'mfa_required','Two-step verification required.');redirect(BASE_URL.(domain_is_central(auth_user())?'admin/verify.php':'modules/verify.php'));}
     if(function_exists('shop_find')){
         $shopOwner=auth_user();$shopId=(int)($shopOwner['shop_id']??0);
         if($shopId>0&&!access_super_role((string)$shopOwner['role'])){

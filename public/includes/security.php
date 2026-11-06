@@ -2,7 +2,7 @@
 /** Shared security helpers; existing users and password hashes remain authoritative. */
 function security_epoch(){return get_setting('security.session_epoch','0');}
 function security_user_version($id){return get_setting('security.user_version.'.(int)$id,'0');}
-function security_forget_auth(){foreach(['authenticated','user_id','user_username','user_fullname','user_role','auth_started','auth_seen','auth_version','auth_epoch','auth_fingerprint','super_admin_verified','is_super_admin','screen_locked','office2_version','central_mfa_at','shop_context_id','central_user_preview'] as $key)unset($_SESSION[$key]);unset($GLOBALS['_auth_user'],$GLOBALS['_user_preview_state']);}
+function security_forget_auth(){foreach(['authenticated','user_id','user_username','user_fullname','user_role','auth_started','auth_seen','auth_version','auth_epoch','auth_fingerprint','super_admin_verified','is_super_admin','screen_locked','office2_version','central_mfa_at','user_mfa_at','shop_context_id','central_user_preview'] as $key)unset($_SESSION[$key]);unset($GLOBALS['_auth_user'],$GLOBALS['_user_preview_state']);}
 function security_establish_session(array $user) {
     session_regenerate_id(true);
     security_forget_auth();
@@ -58,7 +58,7 @@ function security_change_password($current,$next,$confirmation) {
         $pdo->prepare('UPDATE user_access SET must_change_password=0,updated_at=CURRENT_TIMESTAMP WHERE user_id=?')->execute([$user['id']]);
         $pdo->commit();
     }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw new RuntimeException(__t('Password was not changed. Please refresh and try again.','رمز تغییر نکرد؛ صفحه را تازه و دوباره تلاش کنید.','رمز بدل نه شو؛ پاڼه تازه او بیا هڅه وکړئ.'));}
-    $record['password']=$hash;security_establish_session($record);
+    trusted_device_revoke_user((int)$user['id']);unset($_SESSION['user_mfa_at']);$record['password']=$hash;security_establish_session($record);
     log_activity($user['id'],'Password changed','Own password updated; other sessions invalidated.');
 }
 function security_safe_return($url) {

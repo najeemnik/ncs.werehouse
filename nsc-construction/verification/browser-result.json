@@ -1,0 +1,32 @@
+{
+  "checks": [
+    "Empty test starts without login and sample records",
+    "Apartment and sales navigation/cards are locked",
+    "Sidebar logo is small",
+    "Install button works without a native browser prompt",
+    "Project creation opens a working itemized budget form",
+    "Company logo uploads from Settings",
+    "All four user themes change colors and persist",
+    "Project background size works; invalid replacement preserves previous image",
+    "Take a photo opens live camera instead of file manager",
+    "Captured image is cropped/scanned to PDF and attached in test mode",
+    "Stored PDF attachment opens from archive",
+    "Records and attachments persist after reload",
+    "All 119 chart accounts are present",
+    "Backup includes test records and scanned attachment",
+    "Three languages at five display widths have no horizontal overflow",
+    "No JavaScript errors or API calls in the static test",
+    "Another browser starts with an independent empty workspace",
+    "Backup restores records and usable PDF attachments in another browser",
+    "Backup cannot unlock sales or replace existing records on failure",
+    "Reset clears restored test records",
+    "Simulated camera denial gives a message without opening the file manager",
+    "iPhone browser identification shows Safari installation instructions",
+    "The application shell reopens offline through its service worker",
+    "Production still requires login and has a small centered logo"
+  ],
+  "errors": [],
+  "apiRequests": 0,
+  "accountCount": 119,
+  "scope": "Local Chromium, simulated camera; physical devices and live host not tested"
+}

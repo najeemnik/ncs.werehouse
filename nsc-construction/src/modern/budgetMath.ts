@@ -1,0 +1,4 @@
+import {roundMoney} from '../utils/money';
+export type BudgetComponent={id:string;accountCode:string;description:string;quantity:number;unit:string;unitPrice:number;currency:'USD'|'AFN'};
+export const budgetComponentUSD=(line:BudgetComponent,rate:number)=>roundMoney(line.quantity*line.unitPrice/(line.currency==='AFN'?rate:1));
+export function budgetComponentsTotal(lines:BudgetComponent[],rate:number){if(!Number.isFinite(rate)||rate<=0||lines.length>150)throw Error('Invalid budget');let cents=0;for(const line of lines){if(!Number.isFinite(line.quantity)||!Number.isFinite(line.unitPrice)||line.quantity<0||line.unitPrice<0||line.quantity*line.unitPrice>1e12||!['USD','AFN'].includes(line.currency))throw Error('Invalid budget');cents+=Math.round(budgetComponentUSD(line,rate)*100);}if(cents>1e14)throw Error('Invalid budget');return cents/100;}

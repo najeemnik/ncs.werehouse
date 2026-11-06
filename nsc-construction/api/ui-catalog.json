@@ -1,0 +1,2332 @@
+{
+  "accounts": [
+    {
+      "code": "1410",
+      "parentCode": "1400"
+    },
+    {
+      "code": "1420",
+      "parentCode": "1400"
+    },
+    {
+      "code": "1430",
+      "parentCode": "1400"
+    },
+    {
+      "code": "1440",
+      "parentCode": "1400"
+    },
+    {
+      "code": "1450",
+      "parentCode": "1400"
+    },
+    {
+      "code": "1460",
+      "parentCode": "1400"
+    },
+    {
+      "code": "1470",
+      "parentCode": "1400"
+    },
+    {
+      "code": "1480",
+      "parentCode": "1400"
+    },
+    {
+      "code": "1490",
+      "parentCode": "1400"
+    },
+    {
+      "code": "5110",
+      "parentCode": "5100"
+    },
+    {
+      "code": "5120",
+      "parentCode": "5100"
+    },
+    {
+      "code": "5210",
+      "parentCode": "5200"
+    },
+    {
+      "code": "5610",
+      "parentCode": "5600"
+    },
+    {
+      "code": "5620",
+      "parentCode": "5600"
+    },
+    {
+      "code": "5913",
+      "parentCode": "5910"
+    },
+    {
+      "code": "5924",
+      "parentCode": "5920"
+    },
+    {
+      "code": "5934",
+      "parentCode": "5930"
+    },
+    {
+      "code": "5965",
+      "parentCode": "5960"
+    },
+    {
+      "code": "5966",
+      "parentCode": "5960"
+    },
+    {
+      "code": "5967",
+      "parentCode": "5960"
+    },
+    {
+      "code": "5971",
+      "parentCode": "5970"
+    },
+    {
+      "code": "5972",
+      "parentCode": "5970"
+    },
+    {
+      "code": "5981",
+      "parentCode": "5980"
+    },
+    {
+      "code": "5982",
+      "parentCode": "5980"
+    },
+    {
+      "code": "5983",
+      "parentCode": "5980"
+    },
+    {
+      "code": "1360",
+      "parentCode": "1000"
+    },
+    {
+      "code": "1310",
+      "parentCode": "1000"
+    },
+    {
+      "code": "1000"
+    },
+    {
+      "code": "1100",
+      "parentCode": "1000"
+    },
+    {
+      "code": "1110",
+      "parentCode": "1100"
+    },
+    {
+      "code": "1120",
+      "parentCode": "1100"
+    },
+    {
+      "code": "1130",
+      "parentCode": "1100"
+    },
+    {
+      "code": "1140",
+      "parentCode": "1100"
+    },
+    {
+      "code": "1200",
+      "parentCode": "1000"
+    },
+    {
+      "code": "1300",
+      "parentCode": "1000"
+    },
+    {
+      "code": "1400",
+      "parentCode": "1000"
+    },
+    {
+      "code": "1500",
+      "parentCode": "1000"
+    },
+    {
+      "code": "1600",
+      "parentCode": "1000"
+    },
+    {
+      "code": "1800",
+      "parentCode": "1000"
+    },
+    {
+      "code": "2000"
+    },
+    {
+      "code": "2100",
+      "parentCode": "2000"
+    },
+    {
+      "code": "2200",
+      "parentCode": "2100"
+    },
+    {
+      "code": "2250",
+      "parentCode": "2100"
+    },
+    {
+      "code": "2300",
+      "parentCode": "2000"
+    },
+    {
+      "code": "2400",
+      "parentCode": "2000"
+    },
+    {
+      "code": "2500",
+      "parentCode": "2000"
+    },
+    {
+      "code": "2600",
+      "parentCode": "2000"
+    },
+    {
+      "code": "2900",
+      "parentCode": "2000"
+    },
+    {
+      "code": "3000"
+    },
+    {
+      "code": "3100",
+      "parentCode": "3000"
+    },
+    {
+      "code": "3200",
+      "parentCode": "3000"
+    },
+    {
+      "code": "3300",
+      "parentCode": "3000"
+    },
+    {
+      "code": "3400",
+      "parentCode": "3000"
+    },
+    {
+      "code": "4000"
+    },
+    {
+      "code": "4100",
+      "parentCode": "4000"
+    },
+    {
+      "code": "4200",
+      "parentCode": "4000"
+    },
+    {
+      "code": "4300",
+      "parentCode": "4000"
+    },
+    {
+      "code": "5000"
+    },
+    {
+      "code": "5050",
+      "parentCode": "5000"
+    },
+    {
+      "code": "5100",
+      "parentCode": "5000"
+    },
+    {
+      "code": "5200",
+      "parentCode": "5000"
+    },
+    {
+      "code": "5300",
+      "parentCode": "5000"
+    },
+    {
+      "code": "5400",
+      "parentCode": "5000"
+    },
+    {
+      "code": "5500",
+      "parentCode": "5000"
+    },
+    {
+      "code": "5600",
+      "parentCode": "5000"
+    },
+    {
+      "code": "5700",
+      "parentCode": "5000"
+    },
+    {
+      "code": "5800",
+      "parentCode": "5000"
+    },
+    {
+      "code": "5900",
+      "parentCode": "5000"
+    },
+    {
+      "code": "5910",
+      "parentCode": "5000"
+    },
+    {
+      "code": "5920",
+      "parentCode": "5000"
+    },
+    {
+      "code": "5930",
+      "parentCode": "5000"
+    },
+    {
+      "code": "5940",
+      "parentCode": "5000"
+    },
+    {
+      "code": "5950",
+      "parentCode": "5000"
+    },
+    {
+      "code": "5960",
+      "parentCode": "5000"
+    },
+    {
+      "code": "5970",
+      "parentCode": "5000"
+    },
+    {
+      "code": "5980",
+      "parentCode": "5000"
+    },
+    {
+      "code": "5990",
+      "parentCode": "5000"
+    },
+    {
+      "code": "5310",
+      "parentCode": "5300"
+    },
+    {
+      "code": "5410",
+      "parentCode": "5400"
+    },
+    {
+      "code": "5420",
+      "parentCode": "5400"
+    },
+    {
+      "code": "5510",
+      "parentCode": "5500"
+    },
+    {
+      "code": "5520",
+      "parentCode": "5500"
+    },
+    {
+      "code": "5530",
+      "parentCode": "5500"
+    },
+    {
+      "code": "5911",
+      "parentCode": "5910"
+    },
+    {
+      "code": "5912",
+      "parentCode": "5910"
+    },
+    {
+      "code": "5921",
+      "parentCode": "5920"
+    },
+    {
+      "code": "5922",
+      "parentCode": "5920"
+    },
+    {
+      "code": "5923",
+      "parentCode": "5920"
+    },
+    {
+      "code": "5931",
+      "parentCode": "5930"
+    },
+    {
+      "code": "5932",
+      "parentCode": "5930"
+    },
+    {
+      "code": "5933",
+      "parentCode": "5930"
+    },
+    {
+      "code": "5941",
+      "parentCode": "5940"
+    },
+    {
+      "code": "5942",
+      "parentCode": "5940"
+    },
+    {
+      "code": "5943",
+      "parentCode": "5940"
+    },
+    {
+      "code": "5951",
+      "parentCode": "5950"
+    },
+    {
+      "code": "5952",
+      "parentCode": "5950"
+    },
+    {
+      "code": "5953",
+      "parentCode": "5950"
+    },
+    {
+      "code": "5954",
+      "parentCode": "5950"
+    },
+    {
+      "code": "5955",
+      "parentCode": "5950"
+    },
+    {
+      "code": "5956",
+      "parentCode": "5950"
+    },
+    {
+      "code": "5957",
+      "parentCode": "5950"
+    },
+    {
+      "code": "5958",
+      "parentCode": "5950"
+    },
+    {
+      "code": "5959",
+      "parentCode": "5950"
+    },
+    {
+      "code": "5961",
+      "parentCode": "5960"
+    },
+    {
+      "code": "5962",
+      "parentCode": "5960"
+    },
+    {
+      "code": "5963",
+      "parentCode": "5960"
+    },
+    {
+      "code": "5964",
+      "parentCode": "5960"
+    },
+    {
+      "code": "6000"
+    },
+    {
+      "code": "6100",
+      "parentCode": "6000"
+    },
+    {
+      "code": "6200",
+      "parentCode": "6000"
+    },
+    {
+      "code": "6300",
+      "parentCode": "6000"
+    },
+    {
+      "code": "6900",
+      "parentCode": "6000"
+    },
+    {
+      "code": "7000"
+    },
+    {
+      "code": "7100",
+      "parentCode": "7000"
+    },
+    {
+      "code": "7200",
+      "parentCode": "7000"
+    },
+    {
+      "code": "8000"
+    },
+    {
+      "code": "8100",
+      "parentCode": "8000"
+    },
+    {
+      "code": "8210",
+      "parentCode": "8000"
+    },
+    {
+      "code": "8200",
+      "parentCode": "8000"
+    }
+  ],
+  "labels": [
+    "liveCamera",
+    "capturePhoto",
+    "cameraStarting",
+    "nativeCamera",
+    "cameraUnavailable",
+    "allCosts",
+    "budgetCategory",
+    "projectHistoryHint",
+    "exited",
+    "transferred",
+    "newPartner",
+    "sellShare",
+    "sellAll",
+    "newBuyer",
+    "existingBuyer",
+    "buyerType",
+    "availableShare",
+    "privateSaleHint",
+    "partnerHistoryHint",
+    "budgetSaved",
+    "budgetItem",
+    "budgetQuickHint",
+    "projectActions",
+    "projectSetupHint",
+    "companyLanguage",
+    "requireProject",
+    "fontSizePx",
+    "pageMargin",
+    "logoWidth",
+    "driveFiles",
+    "companyPhone",
+    "companyEmail",
+    "documentPrint",
+    "about",
+    "creator",
+    "creatorName",
+    "creatorBio",
+    "programIntro",
+    "programDetails",
+    "purpose",
+    "moreInfo",
+    "contacts",
+    "smartChart",
+    "physicalProgress",
+    "progressHint",
+    "budgetUsage",
+    "smartSummary",
+    "expandAll",
+    "collapseAll",
+    "budgetSheet",
+    "budgetSheetHint",
+    "addComponent",
+    "projectAppearance",
+    "backgroundImage",
+    "backgroundFit",
+    "cover",
+    "contain",
+    "repeat",
+    "backgroundSize",
+    "opacity",
+    "logo",
+    "personalOnly",
+    "companyProfile",
+    "legalName",
+    "registrationNumber",
+    "taxNumber",
+    "website",
+    "whatsapp",
+    "bankName",
+    "bankAccount",
+    "bankHolder",
+    "receiptHeader",
+    "receiptFooter",
+    "authorizedSignatory",
+    "documentEditor",
+    "documentTemplate",
+    "paperSize",
+    "orientation",
+    "portrait",
+    "landscape",
+    "importTemplate",
+    "exportTemplate",
+    "editorHint",
+    "headerBlock",
+    "detailsBlock",
+    "itemsBlock",
+    "notesBlock",
+    "signaturesBlock",
+    "footerBlock",
+    "printDocument",
+    "cashReceipt",
+    "goodsReceipt",
+    "presaleBill",
+    "salesBill",
+    "customText",
+    "publicPage",
+    "scanBill",
+    "takePhoto",
+    "choosePhoto",
+    "scanHint",
+    "scanCorners",
+    "scanCorner",
+    "scanResult",
+    "scanPreviewHint",
+    "scanStyle",
+    "colorScan",
+    "grayScan",
+    "bwScan",
+    "brightness",
+    "contrast",
+    "scanFormat",
+    "createScan",
+    "downloadScan",
+    "useScan",
+    "originalPhoto",
+    "scanInvalidImage",
+    "scanCornersInvalid",
+    "scanner",
+    "unitPrice",
+    "quantityPriceHint",
+    "equity",
+    "fromPartner",
+    "toPartner",
+    "fromPartnerName",
+    "toPartnerName",
+    "equityTransferHint",
+    "user",
+    "newPassword",
+    "confirmPassword",
+    "tryLater",
+    "auto",
+    "calculator",
+    "addIncome",
+    "addMaterial",
+    "pettyCash",
+    "paymentType",
+    "income",
+    "client_advance",
+    "accountControls",
+    "accountControlHint",
+    "changeOwnPassword",
+    "resetUserPassword",
+    "currentAdminPassword",
+    "accountUpdateFailed",
+    "passwordSessionHint",
+    "userServices",
+    "userServicesHint",
+    "primaryRecoveryAccess",
+    "userThemes",
+    "fourThemeHint",
+    "defaultTheme",
+    "services",
+    "guide",
+    "assistant",
+    "drive",
+    "backup",
+    "audit_logs",
+    "reconciliation",
+    "journalBalanced",
+    "journalUnbalanced",
+    "postedOnly",
+    "guideBody",
+    "driveSetupHint",
+    "connectDrive",
+    "disconnectDrive",
+    "askAssistant",
+    "licenseTrial",
+    "privateOfficeLink",
+    "privateOfficeHint",
+    "openOffice",
+    "copyLink",
+    "copied",
+    "licenses",
+    "daysRemaining",
+    "personalDays",
+    "effectiveExpiry",
+    "licensePlan",
+    "licenseExpiryDate",
+    "licenseUnlimited",
+    "licenseExpired",
+    "expired",
+    "accountLocked",
+    "companyLocked",
+    "primaryAdministrator",
+    "setRemainingDays",
+    "addDays",
+    "licenseChanged",
+    "licenseLock",
+    "licenseUnlock",
+    "licenseStatus",
+    "licenseCompanyLimit",
+    "licenseSaved",
+    "licenseHistory",
+    "licenseNote",
+    "myWorkspace",
+    "companyWorkspace",
+    "nextPage",
+    "previousPage",
+    "pro",
+    "enterprise",
+    "allUsers",
+    "licenseAccessHint",
+    "licenseProtected",
+    "selectCompany",
+    "accountNames",
+    "fieldLabel",
+    "surface",
+    "secondaryText",
+    "sidebarText",
+    "noShadow",
+    "serifFont",
+    "monoFont",
+    "header",
+    "widgets",
+    "forms",
+    "textEditor",
+    "customPages",
+    "layoutHistory",
+    "downloadLayout",
+    "importLayout",
+    "fontScale",
+    "fontFamily",
+    "contentWidth",
+    "sidebarWidth",
+    "gap",
+    "shadow",
+    "background",
+    "textColor",
+    "borderColor",
+    "sidebar",
+    "brand",
+    "footer",
+    "padding",
+    "gradient",
+    "endColor",
+    "layout",
+    "row",
+    "column",
+    "reverseOrder",
+    "placement",
+    "buttonMode",
+    "navigate",
+    "link",
+    "size",
+    "normal",
+    "small",
+    "solid",
+    "outline",
+    "note",
+    "minHeight",
+    "addWidget",
+    "duplicate",
+    "addPage",
+    "pageBody",
+    "addField",
+    "required",
+    "fieldOrder",
+    "columns",
+    "coreField",
+    "officeScope",
+    "layoutImportError",
+    "plainContent",
+    "formDesignHint",
+    "daysReduction",
+    "adjustedDays",
+    "creditDaysInvalid",
+    "creditPayrollHint",
+    "credits",
+    "sourceCollection",
+    "sourceId",
+    "reason",
+    "adjustedTotal",
+    "creditedAmount",
+    "credit_note",
+    "creditSourceInvalid",
+    "creditLimit",
+    "creditNeedsRefund",
+    "creditLatest",
+    "creditHint",
+    "geometryLocked",
+    "geometryDate",
+    "currentOwner",
+    "transfers",
+    "kind",
+    "cash_transfer",
+    "material_transfer",
+    "ownership_transfer",
+    "toProjectId",
+    "toMethod",
+    "previousOwner",
+    "materialName",
+    "quantity",
+    "unit",
+    "partialReversal",
+    "reversalAmount",
+    "effectiveAmount",
+    "partialLimit",
+    "payroll",
+    "transferStockLimit",
+    "ownershipConflict",
+    "transferHint",
+    "receiptNeedsSale",
+    "receiptInvalidDate",
+    "receiptLimit",
+    "installmentInvalid",
+    "saleCanceled",
+    "installmentPlanHint",
+    "receiptDraftSaved",
+    "investmentPartnerInvalid",
+    "payrollCashHint",
+    "morning",
+    "afternoon",
+    "USD",
+    "AFN",
+    "zoneKabul",
+    "zoneUTC",
+    "zoneDubai",
+    "zoneLondon",
+    "zoneNewYork",
+    "zoneKarachi",
+    "zoneBerlin",
+    "pageTitle",
+    "app",
+    "subtitle",
+    "dashboard",
+    "projects",
+    "steel",
+    "concrete",
+    "expenses",
+    "contractors",
+    "labor",
+    "suppliers",
+    "assets",
+    "apartments",
+    "payments",
+    "budget",
+    "documents",
+    "reports",
+    "accounting",
+    "partners",
+    "investments",
+    "staff",
+    "settings",
+    "office",
+    "notifications",
+    "construction",
+    "finance",
+    "company",
+    "reverse",
+    "reversal",
+    "reversed",
+    "reversalDate",
+    "reversalReason",
+    "reversalReasonHint",
+    "reversalHint",
+    "reverseNeedsPayments",
+    "reverseInvalidDate",
+    "reverseClosed",
+    "reverseUnavailable",
+    "correctedDraft",
+    "sourceDocument",
+    "partyType",
+    "retentionAmount",
+    "taxAmount",
+    "netDue",
+    "retention_release",
+    "tax_remittance",
+    "withholdingHint",
+    "add",
+    "edit",
+    "delete",
+    "save",
+    "cancel",
+    "close",
+    "search",
+    "empty",
+    "emptyHint",
+    "allProjects",
+    "project",
+    "name",
+    "date",
+    "description",
+    "notes",
+    "amount",
+    "currency",
+    "exchangeRate",
+    "paidAmount",
+    "remaining",
+    "total",
+    "status",
+    "actions",
+    "phone",
+    "email",
+    "username",
+    "password",
+    "signIn",
+    "signOut",
+    "forgot",
+    "sendCode",
+    "recoveryCode",
+    "resetPassword",
+    "recoverySent",
+    "passwordChanged",
+    "error",
+    "permissionDenied",
+    "saved",
+    "saving",
+    "pending",
+    "server",
+    "preview",
+    "blankTestLabel",
+    "blankTestHint",
+    "resetTest",
+    "resetTestConfirm",
+    "previewHint",
+    "committed",
+    "paid",
+    "payable",
+    "receivable",
+    "sales",
+    "received",
+    "profit",
+    "cashFlow",
+    "wip",
+    "cogs",
+    "budgetVsActual",
+    "financialOverview",
+    "recent",
+    "viewAll",
+    "expenseMix",
+    "live",
+    "billNumber",
+    "supplierName",
+    "kg",
+    "tons",
+    "pricePerTon",
+    "sizeMm",
+    "quantityM3",
+    "pricePerM3",
+    "concreteGrade",
+    "pumpCharge",
+    "elementPoured",
+    "category",
+    "partyName",
+    "paymentMethod",
+    "recipientName",
+    "relatedType",
+    "relatedId",
+    "code",
+    "city",
+    "address",
+    "floors",
+    "units",
+    "buildingArea",
+    "budgetAmount",
+    "unitNumber",
+    "floor",
+    "area",
+    "pricePerM2",
+    "salePrice",
+    "buyerName",
+    "buyerPhone",
+    "downPayment",
+    "contractAmount",
+    "contractType",
+    "retentionPercentage",
+    "taxRate",
+    "materialsSupplied",
+    "totalPurchases",
+    "totalPaid",
+    "workerName",
+    "role",
+    "daysWorked",
+    "dailyRate",
+    "advanceDeduction",
+    "purchaseCost",
+    "purchaseDate",
+    "assetName",
+    "salvageValue",
+    "usefulLifeYears",
+    "title",
+    "fileUrl",
+    "accountCode",
+    "budgetedAmount",
+    "partnerName",
+    "sharePercentage",
+    "initialInvestment",
+    "partnerId",
+    "type",
+    "active",
+    "in_construction",
+    "completed",
+    "paused",
+    "available",
+    "reserved",
+    "sold",
+    "maintenance",
+    "unpaid",
+    "partial",
+    "cash",
+    "bank",
+    "hawala",
+    "personal",
+    "expense",
+    "apartment_sale",
+    "initial",
+    "additional",
+    "withdrawal",
+    "supplier",
+    "contractor",
+    "labour",
+    "other",
+    "chart",
+    "trial",
+    "journal",
+    "debit",
+    "credit",
+    "balanced",
+    "unbalanced",
+    "print",
+    "export",
+    "downloadBackup",
+    "restoreBackup",
+    "confirmDelete",
+    "confirmRestore",
+    "validation",
+    "appearance",
+    "language",
+    "companyName",
+    "light",
+    "dark",
+    "preferences",
+    "notifyExpenses",
+    "notifyPayments",
+    "notifySales",
+    "notifyBudget",
+    "notifyDocuments",
+    "browserNotifications",
+    "enableNotifications",
+    "quietStart",
+    "quietEnd",
+    "noNotifications",
+    "markRead",
+    "designStudio",
+    "designHint",
+    "headerColor",
+    "accentColor",
+    "shape",
+    "rounded",
+    "square",
+    "soft",
+    "density",
+    "compact",
+    "comfortable",
+    "large",
+    "visible",
+    "locked",
+    "moveUp",
+    "moveDown",
+    "width",
+    "reset",
+    "addClock",
+    "clock",
+    "digital",
+    "dateClock",
+    "digital24",
+    "analog",
+    "analogSeconds",
+    "worldClock",
+    "timezone",
+    "buttonLabel",
+    "buttonAction",
+    "addButton",
+    "history",
+    "undo",
+    "permissions",
+    "view",
+    "create",
+    "approve",
+    "owner",
+    "employee",
+    "disabled",
+    "enabled",
+    "all",
+    "accessHint",
+    "addGrant",
+    "removeGrant",
+    "createCompany",
+    "passwordHint",
+    "install",
+    "iphone",
+    "offline",
+    "updateAvailable",
+    "reload",
+    "retry",
+    "conflict",
+    "today",
+    "records",
+    "quickActions",
+    "period",
+    "from",
+    "to",
+    "newProject",
+    "select",
+    "attachment",
+    "upload",
+    "transfer",
+    "newOwner",
+    "transferValue",
+    "transferDate",
+    "ownershipTransfer",
+    "closePeriod",
+    "closedThrough",
+    "fiscalPeriod",
+    "machinery",
+    "vehicle",
+    "equipment",
+    "building",
+    "it",
+    "idle",
+    "disposed",
+    "bills",
+    "receipts",
+    "contracts",
+    "netPayable",
+    "grossWage",
+    "currentBookValue",
+    "pendingPayment",
+    "newCompany",
+    "draft",
+    "submitted",
+    "approved",
+    "posted",
+    "approvalStatus",
+    "installment",
+    "dueDate",
+    "addInstallment",
+    "receiveInstallment",
+    "submitApproval",
+    "approveDocument",
+    "postDocument",
+    "returnDraft",
+    "approvalHistory",
+    "legacyPosted",
+    "waitForSave",
+    "approvalHint"
+  ],
+  "modules": [
+    {
+      "id": "credits",
+      "collection": "creditNotes",
+      "fields": [
+        {
+          "key": "sourceCollection",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "sourceId",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "date",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "daysReduction",
+          "type": "number",
+          "required": false
+        },
+        {
+          "key": "amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "reason",
+          "type": "textarea",
+          "required": true
+        }
+      ],
+      "columns": [
+        "date",
+        "sourceCollection",
+        "sourceId",
+        "amount",
+        "currency",
+        "reason",
+        "daysReduction",
+        "approvalStatus",
+        "effectiveAmount",
+        "creditedAmount",
+        "adjustedTotal"
+      ]
+    },
+    {
+      "id": "transfers",
+      "collection": "projectTransfers",
+      "fields": [
+        {
+          "key": "kind",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "date",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "toProjectId",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "exchangeRate",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "method",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "toMethod",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "accountCode",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "materialName",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "quantity",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "unit",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "previousOwner",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "newOwner",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "notes",
+          "type": "textarea",
+          "required": false
+        }
+      ],
+      "columns": [
+        "date",
+        "kind",
+        "toProjectId",
+        "amount",
+        "currency",
+        "accountCode",
+        "previousOwner",
+        "newOwner",
+        "exchangeRate",
+        "method",
+        "toMethod",
+        "materialName",
+        "quantity",
+        "unit",
+        "notes",
+        "approvalStatus",
+        "effectiveAmount",
+        "creditedAmount",
+        "adjustedTotal"
+      ]
+    },
+    {
+      "id": "projects",
+      "collection": "projects",
+      "fields": [
+        {
+          "key": "name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "code",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "city",
+          "type": "text",
+          "required": false
+        },
+        {
+          "key": "address",
+          "type": "text",
+          "required": false
+        },
+        {
+          "key": "floors",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "units",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "buildingArea",
+          "type": "number",
+          "required": false
+        },
+        {
+          "key": "budget",
+          "type": "number",
+          "required": false
+        },
+        {
+          "key": "progressPercentage",
+          "type": "number",
+          "required": false
+        },
+        {
+          "key": "currency",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "exchangeRate",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "status",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "startDate",
+          "type": "date",
+          "required": false
+        },
+        {
+          "key": "description",
+          "type": "textarea",
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "city",
+        "floors",
+        "units",
+        "status",
+        "currentOwner",
+        "address",
+        "buildingArea",
+        "budget",
+        "progressPercentage",
+        "currency",
+        "exchangeRate",
+        "startDate",
+        "description",
+        "approvalStatus",
+        "effectiveAmount",
+        "creditedAmount",
+        "adjustedTotal"
+      ]
+    },
+    {
+      "id": "steel",
+      "collection": "steel",
+      "fields": [
+        {
+          "key": "supplierName",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "billNumber",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "date",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "kg",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "sizeMm",
+          "type": "text",
+          "required": false
+        },
+        {
+          "key": "pricePerTon",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "paidAmount",
+          "type": "number",
+          "required": false
+        },
+        {
+          "key": "currency",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "exchangeRate",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "notes",
+          "type": "textarea",
+          "required": false
+        }
+      ],
+      "columns": [
+        "date",
+        "billNumber",
+        "supplierName",
+        "kg",
+        "totalAmount",
+        "paidAmount",
+        "remainingBalance",
+        "sizeMm",
+        "pricePerTon",
+        "currency",
+        "exchangeRate",
+        "notes",
+        "approvalStatus",
+        "effectiveAmount",
+        "creditedAmount",
+        "adjustedTotal"
+      ]
+    },
+    {
+      "id": "concrete",
+      "collection": "concrete",
+      "fields": [
+        {
+          "key": "supplierName",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "billNumber",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "date",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "concreteGrade",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "elementPoured",
+          "type": "text",
+          "required": false
+        },
+        {
+          "key": "quantityM3",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "pricePerM3",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "pumpCharge",
+          "type": "number",
+          "required": false
+        },
+        {
+          "key": "paidAmount",
+          "type": "number",
+          "required": false
+        },
+        {
+          "key": "currency",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "exchangeRate",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "notes",
+          "type": "textarea",
+          "required": false
+        }
+      ],
+      "columns": [
+        "date",
+        "billNumber",
+        "supplierName",
+        "quantityM3",
+        "totalAmount",
+        "paidAmount",
+        "remainingBalance",
+        "concreteGrade",
+        "elementPoured",
+        "pricePerM3",
+        "pumpCharge",
+        "currency",
+        "exchangeRate",
+        "notes",
+        "approvalStatus",
+        "effectiveAmount",
+        "creditedAmount",
+        "adjustedTotal"
+      ]
+    },
+    {
+      "id": "expenses",
+      "collection": "expenses",
+      "fields": [
+        {
+          "key": "category",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "description",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "quantity",
+          "type": "number",
+          "required": false
+        },
+        {
+          "key": "unit",
+          "type": "text",
+          "required": false
+        },
+        {
+          "key": "unitPrice",
+          "type": "number",
+          "required": false
+        },
+        {
+          "key": "partyType",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "partyId",
+          "type": "select",
+          "required": false
+        },
+        {
+          "key": "partyName",
+          "type": "text",
+          "required": false
+        },
+        {
+          "key": "retentionPercentage",
+          "type": "number",
+          "required": false
+        },
+        {
+          "key": "taxPercentage",
+          "type": "number",
+          "required": false
+        },
+        {
+          "key": "billNumber",
+          "type": "text",
+          "required": false
+        },
+        {
+          "key": "date",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "paidAmount",
+          "type": "number",
+          "required": false
+        },
+        {
+          "key": "currency",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "exchangeRate",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "paymentMethod",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "notes",
+          "type": "textarea",
+          "required": false
+        }
+      ],
+      "columns": [
+        "date",
+        "billNumber",
+        "description",
+        "category",
+        "partyName",
+        "amount",
+        "retentionAmount",
+        "taxAmount",
+        "netDue",
+        "paidAmount",
+        "remainingAmount",
+        "quantity",
+        "unit",
+        "unitPrice",
+        "partyType",
+        "partyId",
+        "retentionPercentage",
+        "taxPercentage",
+        "currency",
+        "exchangeRate",
+        "paymentMethod",
+        "notes",
+        "approvalStatus",
+        "effectiveAmount",
+        "creditedAmount",
+        "adjustedTotal"
+      ]
+    },
+    {
+      "id": "contractors",
+      "collection": "contractors",
+      "fields": [
+        {
+          "key": "name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "phone",
+          "type": "text",
+          "required": false
+        },
+        {
+          "key": "contractType",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "contractAmount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "retentionPercentage",
+          "type": "number",
+          "required": false
+        },
+        {
+          "key": "taxPercentage",
+          "type": "number",
+          "required": false
+        },
+        {
+          "key": "currency",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "notes",
+          "type": "textarea",
+          "required": false
+        }
+      ],
+      "columns": [
+        "name",
+        "phone",
+        "contractType",
+        "contractAmount",
+        "retentionPercentage",
+        "taxPercentage",
+        "currency",
+        "notes",
+        "approvalStatus",
+        "effectiveAmount",
+        "creditedAmount",
+        "adjustedTotal"
+      ]
+    },
+    {
+      "id": "labor",
+      "collection": "labor",
+      "fields": [
+        {
+          "key": "workerName",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "role",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "phone",
+          "type": "text",
+          "required": false
+        },
+        {
+          "key": "workPeriod",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "date",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "exchangeRate",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "daysWorked",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "dailyRate",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "advanceDeduction",
+          "type": "number",
+          "required": false
+        },
+        {
+          "key": "paymentStatus",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "notes",
+          "type": "textarea",
+          "required": false
+        }
+      ],
+      "columns": [
+        "workerName",
+        "role",
+        "daysWorked",
+        "adjustedDays",
+        "dailyRate",
+        "grossWage",
+        "netPayable",
+        "paidAmount",
+        "remainingAmount",
+        "paymentStatus",
+        "phone",
+        "workPeriod",
+        "date",
+        "currency",
+        "exchangeRate",
+        "advanceDeduction",
+        "notes",
+        "approvalStatus",
+        "effectiveAmount",
+        "creditedAmount",
+        "adjustedTotal"
+      ]
+    },
+    {
+      "id": "suppliers",
+      "collection": "suppliers",
+      "fields": [
+        {
+          "key": "name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "phone",
+          "type": "text",
+          "required": false
+        },
+        {
+          "key": "materialsSupplied",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "notes",
+          "type": "textarea",
+          "required": false
+        }
+      ],
+      "columns": [
+        "name",
+        "phone",
+        "materialsSupplied",
+        "currency",
+        "notes",
+        "approvalStatus",
+        "effectiveAmount",
+        "creditedAmount",
+        "adjustedTotal"
+      ]
+    },
+    {
+      "id": "assets",
+      "collection": "assets",
+      "fields": [
+        {
+          "key": "name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "assetTag",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "category",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "purchaseDate",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "purchaseCost",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "salvageValue",
+          "type": "number",
+          "required": false
+        },
+        {
+          "key": "usefulLifeYears",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "status",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "notes",
+          "type": "textarea",
+          "required": false
+        }
+      ],
+      "columns": [
+        "assetTag",
+        "name",
+        "purchaseDate",
+        "purchaseCost",
+        "currentBookValue",
+        "status",
+        "category",
+        "salvageValue",
+        "usefulLifeYears",
+        "notes",
+        "approvalStatus",
+        "effectiveAmount",
+        "creditedAmount",
+        "adjustedTotal"
+      ]
+    },
+    {
+      "id": "apartments",
+      "collection": "apartments",
+      "fields": [
+        {
+          "key": "unitNumber",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "floor",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "areaM2",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "pricePerM2",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "exchangeRate",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "status",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "buyerName",
+          "type": "text",
+          "required": false
+        },
+        {
+          "key": "buyerPhone",
+          "type": "text",
+          "required": false
+        },
+        {
+          "key": "downPayment",
+          "type": "number",
+          "required": false
+        },
+        {
+          "key": "contractDate",
+          "type": "date",
+          "required": false
+        },
+        {
+          "key": "notes",
+          "type": "textarea",
+          "required": false
+        }
+      ],
+      "columns": [
+        "unitNumber",
+        "floor",
+        "areaM2",
+        "status",
+        "buyerName",
+        "salePrice",
+        "remainingBalance",
+        "pricePerM2",
+        "currency",
+        "exchangeRate",
+        "buyerPhone",
+        "downPayment",
+        "contractDate",
+        "notes",
+        "approvalStatus",
+        "effectiveAmount",
+        "creditedAmount",
+        "adjustedTotal"
+      ]
+    },
+    {
+      "id": "payments",
+      "collection": "payments",
+      "fields": [
+        {
+          "key": "partyName",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "date",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "exchangeRate",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "method",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "paymentType",
+          "type": "select",
+          "required": false
+        },
+        {
+          "key": "relatedType",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "relatedId",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "installmentId",
+          "type": "select",
+          "required": false
+        },
+        {
+          "key": "description",
+          "type": "text",
+          "required": false
+        },
+        {
+          "key": "notes",
+          "type": "textarea",
+          "required": false
+        }
+      ],
+      "columns": [
+        "date",
+        "partyName",
+        "description",
+        "amount",
+        "currency",
+        "method",
+        "relatedType",
+        "paymentType",
+        "exchangeRate",
+        "relatedId",
+        "installmentId",
+        "notes",
+        "approvalStatus",
+        "effectiveAmount",
+        "creditedAmount",
+        "adjustedTotal"
+      ]
+    },
+    {
+      "id": "budget",
+      "collection": "projectBudgets",
+      "fields": [
+        {
+          "key": "accountCode",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "exchangeRate",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "notes",
+          "type": "textarea",
+          "required": false
+        }
+      ],
+      "columns": [
+        "accountCode",
+        "amount",
+        "currency",
+        "exchangeRate",
+        "notes",
+        "approvalStatus",
+        "effectiveAmount",
+        "creditedAmount",
+        "adjustedTotal"
+      ]
+    },
+    {
+      "id": "documents",
+      "collection": "documents",
+      "fields": [
+        {
+          "key": "title",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "date",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "category",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "fileUrl",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "notes",
+          "type": "textarea",
+          "required": false
+        }
+      ],
+      "columns": [
+        "date",
+        "title",
+        "category",
+        "fileUrl",
+        "notes",
+        "approvalStatus",
+        "effectiveAmount",
+        "creditedAmount",
+        "adjustedTotal"
+      ]
+    },
+    {
+      "id": "equity",
+      "collection": "partnerEquityTransfers",
+      "fields": [
+        {
+          "key": "fromPartnerId",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "toPartnerId",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "transferredPercentage",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "transferPrice",
+          "type": "number",
+          "required": false
+        },
+        {
+          "key": "currency",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "transferDate",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "notes",
+          "type": "textarea",
+          "required": false
+        }
+      ],
+      "columns": [
+        "transferDate",
+        "fromPartnerName",
+        "toPartnerName",
+        "transferredPercentage",
+        "transferPrice",
+        "currency",
+        "fromPartnerId",
+        "toPartnerId",
+        "notes",
+        "approvalStatus",
+        "effectiveAmount",
+        "creditedAmount",
+        "adjustedTotal"
+      ]
+    },
+    {
+      "id": "partners",
+      "collection": "projectPartners",
+      "fields": [
+        {
+          "key": "name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "phone",
+          "type": "text",
+          "required": false
+        },
+        {
+          "key": "sharePercentage",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "initialInvestment",
+          "type": "number",
+          "required": false
+        },
+        {
+          "key": "currency",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "notes",
+          "type": "textarea",
+          "required": false
+        }
+      ],
+      "columns": [
+        "name",
+        "phone",
+        "sharePercentage",
+        "initialInvestment",
+        "status",
+        "currency",
+        "notes",
+        "approvalStatus",
+        "effectiveAmount",
+        "creditedAmount",
+        "adjustedTotal"
+      ]
+    },
+    {
+      "id": "investments",
+      "collection": "projectInvestments",
+      "fields": [
+        {
+          "key": "partnerId",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "date",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "exchangeRate",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "type",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "paymentMethod",
+          "type": "select",
+          "required": true
+        },
+        {
+          "key": "notes",
+          "type": "textarea",
+          "required": false
+        }
+      ],
+      "columns": [
+        "date",
+        "partnerName",
+        "type",
+        "amount",
+        "currency",
+        "paymentMethod",
+        "partnerId",
+        "exchangeRate",
+        "notes",
+        "approvalStatus",
+        "effectiveAmount",
+        "creditedAmount",
+        "adjustedTotal"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+import {computeBudgetReport} from '../src/utils/budgetUtils';
+import assert from 'node:assert/strict';
+import {buildJournal,computeAccountBalances} from '../src/utils/journalEngine';
+import {projectMetrics,recognizedProfit} from '../src/modern/metrics';
+import {calculateUnitConversion} from '../src/utils/unitConversion';
+const base:any={projects:[{id:'p',defaultExchangeRate:70}],expenses:[],steelRecords:[],concreteRecords:[],payments:[],apartments:[],projectInvestments:[]};
+let count=0;const check=(condition:boolean,message:string)=>{assert(condition,message);count++;};
+for(const currency of ['USD','AFN'])for(const method of ['Cash','Bank','Hawala']){
+ const amount=currency==='AFN'?7000:100;
+ for(const relatedType of ['other','client_advance']){
+  const pay:any={id:'receipt',projectId:'p',date:'2026-10-13',amount,currency,exchangeRate:70,method,relatedType,paymentType:'income',partyName:'Payer',approvalStatus:'posted'};
+  const journal=buildJournal({...base,payments:[pay]}),balances=computeAccountBalances(journal),bal=(code:string)=>balances.find(b=>b.accountCode===code)?.balanceUSD||0;
+  check(journal.every(e=>Math.abs(e.totalDebitUSD-e.totalCreditUSD)<0.021),'cash entry balances');check(Math.abs(bal(relatedType==='other'?'4300':'2300')-100)<0.021,'income and customer advance use different accounts');
+  const a:any={...base,laborRecords:[],getProjectJournal:()=>journal};a.payments=[pay];const metrics=projectMetrics(a,'p');check(metrics.paid===0,'cash receipts never inflate outgoing payments');check(metrics.profit===(relatedType==='other'?100:0),'advance is not recognized revenue');
+  const event={id:'part',date:'2026-10-14',amount:40*(currency==='AFN'?70:1)};
+  const adjusted=buildJournal({...base,payments:[{...pay,partialReversals:[event]}]});const b=computeAccountBalances(adjusted).find(b=>b.accountCode===(relatedType==='other'?'4300':'2300'))?.balanceUSD;check(Math.abs((b||0)-60)<0.021,'partial reversal restores correct cash and counter-account');
+ }
+}
+for(const currency of ['USD','AFN'])for(const method of ['Cash','Bank','Hawala']){const amount=currency==='AFN'?7000:100,pay:any={id:'standalone',projectId:'p',date:'2026-10-13',currency,exchangeRate:70,amount,method,relatedType:'other',paymentType:'expense',approvalStatus:'posted',partialReversals:[{id:'refund',date:'2026-10-14',amount:amount*.4}]};const journal=buildJournal({...base,payments:[pay]}),metrics=projectMetrics({...base,payments:[pay],laborRecords:[],getProjectJournal:()=>journal},'p');check(Math.abs(metrics.committed-60)<.01&&Math.abs(metrics.paid-60)<.01,'standalone paid expenses count in project costs');check(metrics.profit===-60,'standalone cost reduces recognized profit');const budget=computeBudgetReport({...base,projectId:'p',project:base.projects[0],payments:[pay],budgets:[{id:'b',projectId:'p',accountCode:'5990',amount:100,currency:'USD'}]});check(budget[0].committedUSD===60&&budget[0].paidUSD===60&&budget[0].remainingUSD===40,'standalone expense and refund consume the correct budget');}
+check(recognizedProfit([{accountCode:'4000',balanceUSD:2000},{accountCode:'5000',balanceUSD:500},{accountCode:'6000',balanceUSD:100},{accountCode:'7000',balanceUSD:30},{accountCode:'8000',balanceUSD:-5},{accountCode:'6900',balanceUSD:100}])===1375,'all recognized expense groups affect profit without counting children twice');
+for(const [currency,expected] of [[undefined,100],['AFN',1.25]] as const){const e:any={id:'legacy',projectId:'p',category:'5310',amount:100,currency,date:'2026-10-13'},report=computeBudgetReport({...base,expenses:[e],projectId:'p',project:{id:'p',defaultExchangeRate:80} as any,budgets:[]});check(report[0].committedUSD===expected,'budget and journal agree on missing legacy currency/rate');}
+for(const historical of [true,false]){const expense:any={id:'bill',projectId:'p',category:'5310',date:'2026-10-13',amount:100,paidAmount:40,currency:'USD',...(historical?{}:{approvalStatus:'posted'})},payment:any={id:'part',projectId:'p',relatedId:'bill',relatedType:'expense',paymentType:'expense',amount:30,currency:'USD',method:'Cash',date:'2026-10-13',approvalStatus:'posted'},data={...base,expenses:[expense],payments:[payment]},journal=buildJournal(data),metrics=projectMetrics({...data,laborRecords:[],getProjectJournal:()=>journal},'p');check(Math.abs(metrics.paid-(historical?40:30))<.01,'historical unlinked settlement agrees with books; new paid metadata cannot invent cash');}
+for(const quantity of [NaN,Infinity,-1,0])check(calculateUnitConversion(quantity,'Ton')===null,'invalid unit quantity rejected');check(calculateUnitConversion(2,'seer')?.convertedQuantity===14,'Afghan seer conversion');check(calculateUnitConversion(2,'bag',{bagWeightKg:25})?.convertedQuantity===50,'configured cement bag weight');
+check(calculateUnitConversion(.1,'kg')?.convertedQuantity===.0001,'small quantities retain conversion precision');check(calculateUnitConversion(2,'bag',{bagWeightKg:-1})===null,'invalid bag weight is rejected');
+console.log(count+' cash direction, advance, currency, reversal and unit conversion checks passed.');

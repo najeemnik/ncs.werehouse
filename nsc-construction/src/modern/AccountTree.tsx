@@ -1,0 +1,11 @@
+import React,{useState} from 'react';
+import {ChevronDown,ChevronRight,Search} from 'lucide-react';
+import {useApp} from '../context/AppContext';
+import {useText} from './EntityView';
+export function AccountTree(){
+ const a=useApp(),t=useText(),[expanded,setExpanded]=useState<Set<string>>(()=>new Set(a.chartOfAccounts.map(c=>c.code))),[query,setQuery]=useState('');
+ const accounts=a.chartOfAccounts.slice().sort((x,y)=>x.code.localeCompare(y.code)),children=(code:string)=>accounts.filter(c=>c.parentCode===code);
+ const match=(code:string):boolean=>!query||[code,a.getAccountDisplayName(code)].some(v=>v.toLowerCase().includes(query.toLowerCase()))||children(code).some(c=>match(c.code));
+ const render=(code:string,depth:number):React.ReactNode=>{const c=accounts.find(c=>c.code===code)!;if(!match(code))return null;const nested=children(code),open=!!query||expanded.has(code);return <React.Fragment key={code}><tr className={nested.length?'nsc-account-group':''}><td>{code}</td><td><button className="nsc-account-branch" style={{paddingInlineStart:depth*22}} disabled={!nested.length} aria-expanded={nested.length?open:undefined} onClick={()=>setExpanded(prev=>{const next=new Set(prev);next.has(code)?next.delete(code):next.add(code);return next;})}>{nested.length?(open?<ChevronDown size={17}/>:<ChevronRight size={17}/>):<span className="nsc-account-leaf"/>}{a.getAccountDisplayName(code)}</button></td></tr>{nested.length>0&&<tr className={'nsc-account-children '+(open?'':'collapsed')}><td colSpan={2}><table><tbody>{nested.map(child=>render(child.code,depth+1))}</tbody></table></td></tr>}</React.Fragment>;};
+ return <div className="nsc-card"><div className="nsc-table-tools"><Search size={17}/><input aria-label={t('search')} placeholder={t('search')} value={query} onChange={e=>setQuery(e.target.value)}/><button className="nsc-button secondary small" onClick={()=>setExpanded(new Set(accounts.map(c=>c.code)))}>{t('expandAll')}</button><button className="nsc-button secondary small" onClick={()=>setExpanded(new Set())}>{t('collapseAll')}</button></div><div className="nsc-table-scroll"><table className="nsc-account-tree"><thead><tr><th>{t('code')}</th><th>{t('accountCode')}</th></tr></thead><tbody>{accounts.filter(c=>!c.parentCode).map(c=>render(c.code,0))}</tbody></table></div></div>;
+}

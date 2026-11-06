@@ -1,0 +1,1 @@
+PASS: Visual builder HTML export preserves content, escapes markup and reports no JavaScript errors.

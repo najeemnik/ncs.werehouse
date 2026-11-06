@@ -1,0 +1,1 @@
+PASS: 103 PHP syntax checks in source and generated production output; no syntax errors.

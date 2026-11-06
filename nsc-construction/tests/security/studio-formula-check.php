@@ -1,0 +1,4 @@
+<?php
+require_once __DIR__.'/../../api/studio-formula.php';$cases=json_decode(file_get_contents(__DIR__.'/studio-formula-cases.json'),true);foreach($cases as [$source,$values,$expected]){$actual=StudioFormula::value((new StudioFormula($source))->parse(),$values);if(abs($actual-$expected)>1e-8)throw new RuntimeException($source.' mismatch '.$actual.' vs '.$expected);}
+foreach(['window.alert(1)','constructor(1)','a[0]','1;2','1/0','2^100','ROUND(1,9)','IF(1,2)','1+','MIN()','Math.round(1)','1e100','<script>'] as $bad){try{StudioFormula::value((new StudioFormula($bad))->parse(),[]);throw new RuntimeException('Unsafe formula accepted: '.$bad);}catch(InvalidArgumentException $e){}}
+echo 'PHP FORMULA PARITY PASSED: '.count($cases)." expressions match TypeScript, 13 invalid expressions rejected\n";

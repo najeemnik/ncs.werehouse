@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';import {writeFileSync} from 'node:fs';
+import {emptyConfig,validateClient} from '../src/modern/studio/model';
+import {existingPage,coreRoutes,coreSourceValid,syncCoreDesign} from '../src/modern/studio/coreModel';
+import {getDesign} from '../src/modern/designModel';
+let count=0;const cfg=structuredClone(emptyConfig);cfg.siteDesign=getDesign({});for(const route of coreRoutes){const p=existingPage(route,{});cfg.pages.push(p);assert(p.blocks.every(b=>b.kind!=='core'||coreSourceValid(b.source)));count++;}assert.equal(cfg.pages.length,26);count++;assert.equal(validateClient(cfg),cfg);count++;
+for(const route of ['office','login','users.php','custom_unknown'])assert.equal(coreSourceValid(route+':page'),false),count++;
+const duplicate=structuredClone(cfg);duplicate.pages.push({...structuredClone(cfg.pages[0]),id:'custom_duplicate'});assert.throws(()=>validateClient(duplicate));count++;
+const bad=structuredClone(cfg);bad.pages[0].blocks[0].source='expenses:content';assert.throws(()=>validateClient(bad));count++;
+const page=structuredClone(cfg);page.homePage=page.pages.find(p=>p.route==='expenses')!.id;assert.throws(()=>validateClient(page));count++;
+const unsafe=structuredClone(cfg);unsafe.siteDesign!.palette.bg='url(https://example.test/x)';assert.throws(()=>validateClient(unsafe));count++;
+const staged=structuredClone(cfg),old=structuredClone(staged.siteDesign!),next=structuredClone(old);next.cards[0].visible=false;next.cards[1].width=6;next.cards.push({id:'note1',kind:'note',width:12,visible:true,title:{en:'Keep my note',fa:'یادداشت',ps:'یادښت'},body:{en:'Original dashboard note',fa:'یادداشت قبلی',ps:'یادښت'}});syncCoreDesign(staged.pages,old,next);staged.siteDesign=next;assert(staged.pages[0].blocks.some(b=>b.style.hidden));assert(staged.pages[0].blocks.some(b=>b.style.span===6));assert(staged.pages[0].blocks.some(b=>b.text.en==='Original dashboard note'));assert.equal(validateClient(staged),staged);count+=4;
+writeFileSync('tests/security/core-builder-fixture.json',JSON.stringify(cfg));console.log('CORE BUILDER UNIT PASSED: '+count+' checks; 26 original routes, all live block bindings, duplicate routes and invalid sources/imports rejected.');

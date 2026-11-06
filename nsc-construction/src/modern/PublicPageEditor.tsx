@@ -1,0 +1,12 @@
+import React,{useEffect,useState} from 'react';
+import {useApp} from '../context/AppContext';
+import {useText} from './EntityView';
+import {backendApi} from '../services/backendApi';
+import {contactDefaults} from './About';
+import {translate,type LabelKey} from './i18n';
+export function PublicPageEditor(){
+ const a=useApp(),t=useText(),[content,setContent]=useState<any>({texts:{},contacts:contactDefaults}),[revision,setRevision]=useState(0),[locale,setLocale]=useState<'en'|'fa'|'ps'>(a.language),[error,setError]=useState(''),[busy,setBusy]=useState(true),[saved,setSaved]=useState(false);
+ useEffect(()=>{backendApi.publicPage().then(r=>{setContent({texts:{},contacts:contactDefaults,...r.data?.content});setRevision(r.data?.revision||0);}).catch(()=>setError(t('error'))).finally(()=>setBusy(false));},[]);
+ const save=async()=>{setBusy(true);setError('');try{const r=await backendApi.savePublicPage(content,revision);setRevision(r.data!.revision);setSaved(true);}catch(e:any){setError(t(e.status===409?'conflict':'validation'));}finally{setBusy(false);}};
+ return <section className="nsc-page"><div className="nsc-page-heading"><h1>{t('publicPage')}</h1><button className="nsc-button" disabled={busy} onClick={save}>{t('save')}</button></div><div className="nsc-card nsc-settings-card"><label><span>{t('language')}</span><select value={locale} onChange={e=>setLocale(e.target.value as any)}><option value="en">English</option><option value="fa">دری</option><option value="ps">پښتو</option></select></label><div className="nsc-form-grid">{(['app','about','creator','creatorName','creatorBio','programIntro','programDetails','purpose','contacts'] as LabelKey[]).map(key=><label className="wide" key={key}><span>{t(key)}</span><textarea maxLength={5000} value={content.texts?.[key]?.[locale]??translate(locale,key)} onChange={e=>{setSaved(false);setContent({...content,texts:{...content.texts,[key]:{en:'',fa:'',ps:'',...content.texts?.[key],[locale]:e.target.value}}});}}/></label>)}{Object.keys(contactDefaults).map(key=><label className="wide" key={key}><span>{key==='phone'?t('phone'):key==='email'?t('email'):'LinkedIn'}</span><input dir="ltr" maxLength={500} value={content.contacts?.[key]??contactDefaults[key as keyof typeof contactDefaults]} onChange={e=>setContent({...content,contacts:{...content.contacts,[key]:e.target.value}})}/></label>)}</div>{error&&<p role="alert" className="nsc-error">{error}</p>}{saved&&<p className="nsc-success">{t('saved')}</p>}</div></section>;
+}

@@ -1,0 +1,20 @@
+import {BrandLogo,CreatorLogo} from './BrandLogo';
+import React,{useState,useEffect} from 'react';
+import {Mail,Phone,MessageCircle,X,ArrowUpRight} from 'lucide-react';
+import {useApp} from '../context/AppContext';
+import {useText} from './EntityView';
+import {backendApi} from '../services/backendApi';
+import type {LabelKey} from './i18n';
+export const contactDefaults={phone:'+93783788278',email:'info@nik-smartcount.com',linkedin:'https://www.linkedin.com/in/najeem-nik-624120298/'};
+export function About({compact=false}:{compact?:boolean}){
+ const a=useApp(),t=useText(),[more,setMore]=useState(false),[publicInfo,setPublicInfo]=useState<any>({});
+ useEffect(()=>{let live=true;backendApi.publicPage().then(r=>{if(live)setPublicInfo(r.data?.content||{});}).catch(()=>{});return()=>{live=false;};},[]);
+ useEffect(()=>{if(!more)return;const previous=document.activeElement as HTMLElement|null,overflow=document.body.style.overflow;document.body.style.overflow='hidden';const dialog=document.querySelector<HTMLElement>('.nsc-about-dialog');dialog?.querySelector<HTMLButtonElement>('button')?.focus();const keydown=(e:KeyboardEvent)=>{if(e.key==='Escape')setMore(false);if(e.key==='Tab'&&dialog){const items=Array.from(dialog.querySelectorAll<HTMLElement>('button,a[href],input,select,textarea,[tabindex="0"]')).filter(el=>!el.hasAttribute('disabled'));const first=items[0],last=items.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}};document.addEventListener('keydown',keydown);return()=>{document.body.style.overflow=overflow;document.removeEventListener('keydown',keydown);previous?.focus();};},[more]);
+ const text=(key:LabelKey)=>publicInfo.texts?.[key]?.[a.language]?.trim()||t(key),contact={...contactDefaults,...publicInfo.contacts};
+ const details=<><div className="nsc-about-program-heading">{!compact&&<BrandLogo className="nsc-about-app-logo"/>}<h2>{text('about')}</h2></div><p>{text('programDetails')}</p><h3>{text('purpose')}</h3><div className="nsc-creator-heading">{!compact&&<CreatorLogo/>}<h3>{text('creatorName')}</h3></div><p>{text('creatorBio')}</p></>;
+ return <section className={compact?'nsc-login-about':'nsc-page nsc-about'}>
+ {compact?<><div className="nsc-about-creator"><span className="nsc-eyebrow">{text('creator')}</span><div className="nsc-creator-heading"><h2>{text('creatorName')}</h2></div><p>{text('creatorBio')}</p></div><div><div className="nsc-about-program-heading"><h3>{text('app')}</h3></div><p>{text('programIntro')}</p><button className="nsc-text-button" onClick={()=>setMore(true)}>{text('moreInfo')}<ArrowUpRight size={15}/></button></div></>:<div className="nsc-card nsc-settings-card">{details}</div>}
+ <div className="nsc-contact-area"><h3>{text('contacts')}</h3><div className="nsc-contact-links"><a href={'https://wa.me/'+contact.phone.replace(/\D/g,'')} target="_blank" rel="noopener noreferrer"><MessageCircle size={20}/><span>WhatsApp<strong dir="ltr">{contact.phone==='+93783788278'?'+93 783 788 278':contact.phone}</strong></span></a><a href={'mailto:'+contact.email}><Mail size={20}/><span>{t('email')}<strong dir="ltr">{contact.email}</strong></span></a><a href={'tel:'+contact.phone}><Phone size={20}/><span>{t('phone')}<strong dir="ltr">{contact.phone==='+93783788278'?'+93 783 788 278':contact.phone}</strong></span></a>{contact.linkedin&&<a href={contact.linkedin} target="_blank" rel="noopener noreferrer"><ArrowUpRight size={20}/><span>LinkedIn<strong>{text('creatorName')}</strong></span></a>}</div></div>
+ {more&&<div className="nsc-modal-backdrop"><div className="nsc-modal nsc-about-dialog" dir={a.language==='en'?'ltr':'rtl'} role="dialog" aria-modal="true" aria-label={t('about')}><div className="nsc-modal-heading"><h2>{t('moreInfo')}</h2><button className="nsc-icon" aria-label={t('close')} onClick={()=>setMore(false)}><X size={20}/></button></div><div className="nsc-settings-card">{details}</div></div></div>}
+ </section>;
+}

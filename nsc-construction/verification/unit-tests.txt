@@ -1,0 +1,117 @@
+Approval accounting passed: seven source types, four states, partial AFN payment, no premature cash/revenue, no duplicate posting, balanced journal and legacy compatibility.
+91 cash direction, advance, currency, reversal and unit conversion checks passed.
+CORE BUILDER UNIT PASSED: 40 checks; 26 original routes, all live block bindings, duplicate routes and invalid sources/imports rejected.
+30 amount/currency/source scenarios passed; exact invoice/sale/payroll credit rounding, restores, immutable original journal prefixes, dated area allocation and WIP/COGS, cost budgets, retained receipts and adjusted unpaid installments passed.
+14 CSV security checks passed: formulas with whitespace/newline/BOM prefixes are text; quotes, Dari, numbers and multiline content preserved.
+
+════════════ 1. ENTRY-LEVEL BALANCE ════════════
+  ✅ Journal built: 119 entries
+  ✅ All entries balanced (Dr == Cr)
+
+════════════ 2. TRIAL BALANCE (USD-normalized) ════════════
+  Code   Account                                       Debit $        Credit $
+  -----  -------------------------------------------  -------------- --------------
+  1110   Cash (AFN)                                          571.43           0.00
+  1120   Cash (USD)                                       21,950.00           0.00
+  1130   Bank Account                                    155,088.57           0.00
+  1140   Hawala / Sarafi Balance                               0.00      34,142.86
+  1200   Apartment Receivables                           240,750.00           0.00
+  1500   Construction Work in Progress (WIP)              85,984.85           0.00
+  2200   Supplier Payables                                     0.00      61,170.00
+  2250   Contractor Payables                              75,000.00           0.00
+  2300   Customer Advances                                     0.00      10,000.00
+  3100   Partners' Capital (Initial)                           0.00       2,857.14
+  4100   Apartment & Unit Sales                                0.00     829,750.00
+  5050   Cost of Units Sold (COGS)                       358,575.15           0.00
+  -----  -------------------------------------------  -------------- --------------
+  TOTALS                                                 937,920.00     937,920.00
+  ✅ Trial balance balances: $937,920.00 == $937,920.00
+
+════════════ 3. ACCOUNTING EQUATION ════════════
+  Assets (1000)                          = $470,201.99
+  Liabilities (2000)                     = $-3,830.00
+  Equity (3000)                          = $2,857.14
+  Net income (Revenue 829,750.00 − Exp 358,575.15) = $471,174.85
+  → Assets 470,201.99  ?=  L + E + NI = 470,201.99
+  ✅ Accounting equation holds: A = L + E + (R − X)
+
+════════════ 4. CROSS-CHECK WITH UI NUMBERS ════════════
+  Books 2200 Supplier Payables = $61,170.00
+  UI outstanding (steel 43,830.00 + concrete 17,340.00 + expenses 0.00)
+  Books 1200 Apartment Receivables = $240,750.00  vs  UI outstanding receivables = $240,750.00
+  ✅ Supplier payables are positive (credit balance)
+  ✅ Receivables on books match UI unit balances
+
+════════════ 5. PROJECT BUDGET REPORT ════════════
+  Account  Budget $      Spent $      Paid $       Payable $    Remaining $  Usage   Status
+  -------  -----------  -----------  -----------  -----------  -----------  ------  ----------
+  5100      180,000.00   158,930.00   115,100.00    43,830.00    21,070.00   88.3%  warning
+  5200      120,000.00   102,580.00    85,240.00    17,340.00    17,420.00   85.5%  warning
+  5600       15,000.00     9,800.00     9,800.00         0.00     5,200.00   65.3%  normal
+  5910       70,000.00    75,000.00    75,000.00         0.00    -5,000.00  107.1%  over
+  5300            0.00    11,250.00    11,250.00         0.00   -11,250.00     —    unbudgeted
+  5400            0.00     5,000.00     5,000.00         0.00    -5,000.00     —    unbudgeted
+  5500            0.00    25,000.00    25,000.00         0.00   -25,000.00     —    unbudgeted
+  5700            0.00    24,000.00    24,000.00         0.00   -24,000.00     —    unbudgeted
+  5800            0.00    14,500.00    14,500.00         0.00   -14,500.00     —    unbudgeted
+  5920            0.00    18,500.00    18,500.00         0.00   -18,500.00     —    unbudgeted
+  TOTALS    385,000.00   444,560.00   383,390.00    61,170.00   -59,560.00  115.5%
+  ✅ Steel (5100) budget line exists
+  ✅ Every budgeted row has a usage %
+  ✅ Remaining = Budget − Spent (5100)
+  ✅ Payable = Spent − Paid (5100)
+  ✅ Warning/Over-Budget detection active
+  ✅ Unbudgeted spending section detected
+
+════════════ 6. WIP / COGS (PHASE 3) ════════════
+  Cost pool (budget-source)       = $444,560.00
+  Sellable area                   = 1215 m² (6 sold / 8 total units)
+  Expected COGS (Σ allocations)   = $358,575.15
+  Book WIP debits (1500 detail)   = $444,560.00
+  Book COGS balance (5050)        = $358,575.15
+  Book WIP net (1500)             = $85,984.85  (unsold work = pool − COGS)
+  ✅ WIP debits equal the full cost pool (all construction costs capitalized)
+  ✅ COGS equals Σ area-allocated cost of SOLD units
+  ✅ WIP net = pool − COGS (unsold inventory remains an asset)
+  ✅ COGS reclass entries emitted per sold unit
+  Unit 101 (120 m² of 1215 m²): allocated = $43,907.16, journal = $43,907.16
+  ✅ Unit 101 total COGS matches area-proportional allocation
+  Unit profitability: sales $829,750.00 − COGS $358,575.15 = gross $471,174.85 (56.8%)
+  ✅ Profitability report COGS agrees with the books
+  ✅ Every sold unit has a margin %
+  ✅ Remaining-in-WIP agrees with account 1500 balance
+
+════════════ SAMPLE ENTRIES ════════════
+  [2024-03-01] سرمایه اولی — حاجی محمد نادر
+       1130 Bank Account                         Dr 100,000.00 AFN
+       3100 Partners' Capital (Initial)          Cr 100,000.00 AFN
+  [2024-03-05] سرمایه اولی — انجینیر حسیب الله
+       1140 Hawala / Sarafi Balance              Dr 60,000.00 AFN
+       3100 Partners' Capital (Initial)          Cr 60,000.00 AFN
+  [2024-03-10] سرمایه اولی — حاجی رفیع الله
+       1110 Cash (AFN)                           Dr 40,000.00 AFN
+       3100 Partners' Capital (Initial)          Cr 40,000.00 AFN
+  [2024-03-15] Payment for Raft Foundation Steel (Bill #KSM-2024-101)
+       2200 Supplier Payables                    Dr 35,100.00 USD
+       1130 Bank Account                         Cr 35,100.00 USD
+  [2024-03-15] خرید سیخ‌گول: 45 تن — بل #KSM-2024-101 (Kabul Steel Mills Corp)
+       1500 Construction Work in Progress (WIP)  Dr 35,100.00 USD
+       2200 Supplier Payables                    Cr 35,100.00 USD
+  [2024-03-22] خرید کانکریت: 380 م³ — بل #ARC-7891 (Asia Ready-Mix Concrete Co.)
+       1500 Construction Work in Progress (WIP)  Dr 37,240.00 USD
+       2200 Supplier Payables                    Cr 37,240.00 USD
+
+🎉 ALL CHECKS PASSED
+
+2205 localization checks passed: complete UI/COA labels, enum aliases, locale fallbacks, dates and per-user language policy.
+14 monetary rounding boundary checks passed: half cents, negative values, multiplication and budget totals match PHP decimal rounding.
+16 partial-cash and transfer currency scenarios passed; payroll liability, exact accumulated currency rounding, report-date preservation, two project legs, clearing balance, material budgets and ownership-without-cash passed.
+28 currency/status/advance/investment-channel scenarios passed; exact inverses, source collisions, dated sold-unit costs, previous report preservation, independent corrected payroll, current budget and half-cent rounding passed.
+Payroll: accrual, advance application, net cash, unpaid liability, budget and WIP checks passed.
+Material subaccounts roll up to the parent budget without double counting.
+Reversals passed: original entries retained, payments/payables/retention/tax/cash cancel exactly, correction posts separately, dated COGS and closed-history prefixes stay unchanged, three purchase types and apartment receipts covered.
+Sale reversals passed: exact sale/COGS/cash/receivables cancellation, immutable report prefixes, no later allocation, same physical unit after correction, draft/posted/reversed installment receipts, FIFO general receipts and fractional AFN.
+260 scanner, PDF, budget, template security and account hierarchy checks passed.
+STUDIO UNIT PASSED: 242 formula, import, hierarchy, rounding and responsive checks
+Withholding passed: gross cost recorded once, net contractor payable, separate retention/tax liabilities, AFN/USD settlement, independent approved releases, budget reconciliation and cent rounding.
+2,000 fractional AFN invoices reconcile in both currencies; explicit rounding entries preserve original amounts and clear settled liabilities.

@@ -1,0 +1,15 @@
+import {adjustedGross,adjustedDays,adjustedInvoiceAmounts,sourceGross} from './credits';
+import {effectiveAmount,roundMoney} from './partialReversals';
+import {saleDate} from './apartmentFinance';
+export function previewCredit(doc:any,row:any,actor:any,date:string,reverse=false,reason=row.reason):void{
+ const fail=(code:string)=>{throw Object.assign(new Error(code),{code});},source=doc[row.sourceCollection]?.find((s:any)=>s.id===row.sourceId&&s.projectId===row.projectId);if(!source||source.approvalStatus!=='posted'||source.reversal)fail('creditSourceInvalid');
+ if(date<(row.sourceCollection==='apartments'?saleDate(source):source.date)||(source.creditAdjustments||[]).some((e:any)=>e.date>date))fail('reverseInvalidDate');
+ if(reverse){const active=(doc.creditNotes||[]).filter((n:any)=>n.sourceCollection===row.sourceCollection&&n.sourceId===source.id&&n.projectId===source.projectId&&n.approvalStatus==='posted'&&!n.reversal).map((n:any)=>n.id);if((source.creditAdjustments||[]).filter((e:any)=>e.amount>0&&active.includes(e.creditNoteId)).at(-1)?.creditNoteId!==row.id)fail('creditLatest');}
+ else if(row.amount<=0||row.amount>adjustedGross(source,row.sourceCollection)||row.currency!==(source.currency||(row.sourceCollection==='labor'?'AFN':'USD'))||row.exchangeRate!==(source.exchangeRate||70))fail('creditLimit');
+ if(!reverse&&row.daysReduction>0&&(row.sourceCollection!=='labor'||row.daysReduction>adjustedDays(source)||row.amount!==roundMoney(row.daysReduction*source.dailyRate)))fail('creditDaysInvalid');
+ const event={id:crypto.randomUUID(),creditNoteId:row.id,date,amount:reverse?-row.amount:row.amount,daysReduction:(reverse?-1:1)*(row.daysReduction||0),reason,actorId:actor?.id||'',actorName:actor?.name||'',at:new Date().toISOString(),...(reverse?{restoresCredit:true}:{})};source.creditAdjustments=[...(source.creditAdjustments||[]),event];
+ if(reverse)return;
+ const paid:Record<string,number>={};for(const p of doc.payments||[]){if(p.projectId!==source.projectId||p.relatedId!==source.id||p.approvalStatus&&p.approvalStatus!=='posted')continue;const types:Record<string,string[]>={expenses:['expense','retention_release','tax_remittance'],steel:['steel','material_steel'],concrete:['concrete','material_concrete'],apartments:['apartment_sale'],labor:['payroll']};if(!types[row.sourceCollection].includes(p.relatedType))continue;for(const e of [...(p.partialReversals||[]),...(p.reversal?[p.reversal]:[])])if(date<e.date)fail('receiptInvalidDate');const type=row.sourceCollection==='expenses'?p.relatedType:'total',v=(p.currency==='AFN'?effectiveAmount(p)/(p.exchangeRate||70):effectiveAmount(p))*(row.currency==='AFN'?row.exchangeRate:1);paid[type]=roundMoney((paid[type]||0)+v);}
+ if(row.sourceCollection==='expenses'){const a=adjustedInvoiceAmounts(source);if((paid.expense||0)>a.net||(paid.retention_release||0)>a.retention||(paid.tax_remittance||0)>a.tax)fail('creditNeedsRefund');}
+ else{const total=adjustedGross(source,row.sourceCollection)-(row.sourceCollection==='labor'?(source.advanceDeduction||0):0);if(total<0||(paid.total||0)>total||row.sourceCollection==='labor'&&source.paymentStatus==='paid')fail('creditNeedsRefund');}
+}

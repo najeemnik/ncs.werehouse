@@ -1,0 +1,8 @@
+import React,{useState} from 'react';
+import {useText} from './EntityView';
+import {rasterImage} from './rasterImage';
+import type {LabelKey} from './i18n';
+export const profileFields:LabelKey[]=['legalName','registrationNumber','taxNumber','address','city','phone','email','whatsapp','website','bankName','bankAccount','bankHolder','authorizedSignatory','receiptHeader','receiptFooter'];
+export function CompanyProfileFields({value,onChange}:{value:Record<string,string>;onChange:(v:Record<string,string>)=>void}){
+ const t=useText(),[error,setError]=useState('');return <fieldset className="nsc-profile-fields"><legend>{t('companyProfile')}</legend><div className="nsc-form-grid">{profileFields.map(key=><label key={key} className={['address','receiptHeader','receiptFooter'].includes(key)?'wide':''}><span>{t(key==='phone'?'companyPhone':key==='email'?'companyEmail':key)}</span>{['receiptHeader','receiptFooter'].includes(key)?<textarea maxLength={2000} value={value[key]||''} onChange={e=>onChange({...value,[key]:e.target.value})}/>:<input type={key==='email'?'email':'text'} maxLength={500} value={value[key]||''} onChange={e=>onChange({...value,[key]:e.target.value})}/>}</label>)}<label className="wide"><span>{t('logo')}</span><input type="file" accept="image/jpeg,image/png,image/webp" onChange={async e=>{const f=e.target.files?.[0];if(!f)return;try{onChange({...value,logo:await rasterImage(f,true)});setError('');}catch{setError(t('scanInvalidImage'));}}}/>{value.logo&&<><img className="nsc-logo-preview" src={value.logo} alt={t('logo')}/><button type="button" className="nsc-text-button" onClick={()=>onChange({...value,logo:''})}>{t('delete')}</button></>}</label></div>{error&&<p className="nsc-error">{error}</p>}</fieldset>;
+}

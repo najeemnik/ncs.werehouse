@@ -1,0 +1,9 @@
+<?php
+require_once __DIR__.'/db.php';require_once __DIR__.'/features.php';sendSecurityHeaders();$db=Database::getConnection();
+if($_SERVER['REQUEST_METHOD']==='GET'){$row=$db->query('SELECT content,revision FROM public_page WHERE id=1')->fetch();jsonResponse(true,['content'=>$row?json_decode($row['content'],true):(object)[],'revision'=>(int)($row['revision']??0)]);}
+if($_SERVER['REQUEST_METHOD']!=='POST')jsonResponse(false,null,'Method is not allowed.',405);
+$actor=authenticateUser();requireOffice7Owner($actor);$input=readJson(100000);$content=$input['content']??null;designObject($content,['texts','contacts']);
+designObject($content['texts']??[],['app','about','creator','creatorName','creatorBio','programIntro','programDetails','purpose','contacts']);foreach($content['texts']??[] as $v)designLocal($v);
+designObject($content['contacts']??[],['phone','email','linkedin']);foreach($content['contacts']??[] as $k=>$v){designString($v,500);if($k==='phone'&&!preg_match('/^\+[0-9]{8,15}$/D',$v))designInvalid();if($k==='email'&&!filter_var($v,FILTER_VALIDATE_EMAIL))designInvalid();if($k==='linkedin'&&$v!==''&&(!filter_var($v,FILTER_VALIDATE_URL)||parse_url($v,PHP_URL_SCHEME)!=='https'))designInvalid();}
+$rev=$input['revision']??null;if(!is_int($rev)||$rev<0)designInvalid();$db->beginTransaction();$db->exec("INSERT IGNORE INTO public_page(id,revision,content) VALUES(1,0,'{}')");$current=(int)$db->query('SELECT revision FROM public_page WHERE id=1 FOR UPDATE')->fetchColumn();if($current!==$rev){$db->rollBack();jsonResponse(false,null,'Page changed. Reload before editing.',409);}
+$s=$db->prepare('UPDATE public_page SET revision=:r,content=:c WHERE id=1');$s->execute(['r'=>$rev+1,'c'=>json_encode($content,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE)]);logAudit($db,$actor['id'],$actor['name'],'update','public_page','1','Public introduction updated');$db->commit();jsonResponse(true,['revision'=>$rev+1]);

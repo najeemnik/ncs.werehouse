@@ -1,0 +1,9 @@
+{
+  "release": "2026-11-06-recovery",
+  "mode": "empty-browser-local-test",
+  "source_recovered_from": "2026-10-14 backup",
+  "claims_all_requirements_complete": false,
+  "browser_checks": 24,
+  "physical_devices_tested": false,
+  "live_host_tested": false
+}

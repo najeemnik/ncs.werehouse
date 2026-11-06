@@ -1,0 +1,27 @@
+import {adjustedInvoiceAmounts} from '../utils/credits';
+import {effectiveAmount} from '../utils/partialReversals';
+import {installmentBalances} from '../utils/apartmentFinance';
+import React,{useMemo,useEffect,useRef,useState} from 'react';
+import {useApp} from '../context/AppContext';
+import {useText} from './EntityView';
+import {isActivePosted,settledAmount} from '../utils/approval';
+import {displayDate} from './presentation';
+import {usd,canAccess} from './model';
+export function useAlerts(){
+ const a=useApp(),t=useText();const [preferencesTick,setPreferencesTick]=useState(0);useEffect(()=>{const update=()=>setPreferencesTick(n=>n+1);window.addEventListener('nsc-notification-preferences',update);return()=>window.removeEventListener('nsc-notification-preferences',update);},[]);let personal:any={};try{personal=JSON.parse(localStorage.getItem('nsc_notification_preferences:'+a.currentUser?.id)||'{}')||{};}catch{}const prefs={...(a.appSettings as any).notificationPreferences,...personal};if(a.currentUser?.customEnabledModules?.notifications===false)prefs.browser=false;const scope='nsc_notification_seen:'+a.currentUser?.id+':'+(a.workspaceCompany||'own');const readSeen=()=>{try{const value=JSON.parse(localStorage.getItem(scope)||'[]');return Array.isArray(value)?value.filter((v:any)=>typeof v==='string').slice(-2500):[];}catch{return [];}};const [seen,setSeen]=useState<string[]>(readSeen);useEffect(()=>{setSeen(readSeen());const refresh=()=>setSeen(readSeen());window.addEventListener('nsc-notifications-read',refresh);return()=>window.removeEventListener('nsc-notifications-read',refresh);},[scope]);const previous=useRef<Set<string>|null>(null);
+ const alerts=useMemo(()=>{
+ const rows:Array<{id:string;title:string;description:string;route:string}>=[];const pid=a.currentProject?.id;const allowed=(section:string)=>canAccess(a.currentUser,pid||'',section,'view',a.appSettings);
+ if(prefs.expenses!==false&&allowed('expenses'))for(const e of a.expenses.filter(e=>e.projectId===pid&&isActivePosted(e)&&adjustedInvoiceAmounts(e).net>settledAmount(e,a.payments)))rows.push({id:'expense:'+e.id,title:t('payable'),description:`${e.partyName||e.description} · ${a.formatCurrency(adjustedInvoiceAmounts(e).net-settledAmount(e,a.payments),e.currency)}`,route:'expenses'});
+ if(prefs.sales!==false&&allowed('apartments'))for(const unit of a.apartments.filter(u=>u.projectId===pid&&u.status==='sold'&&isActivePosted(u)))for(const installment of installmentBalances(unit,a.payments))if(installment.remainingAmount>0&&installment.dueDate<=new Date(Date.now()+7*86400000).toISOString().slice(0,10))rows.push({id:'installment:'+installment.id,title:t('installment'),description:`${unit.unitNumber} · ${displayDate(a.language,installment.dueDate)} · ${a.formatCurrency(installment.remainingAmount,unit.currency)}`,route:'apartments'});
+ if(prefs.budget!==false&&allowed('budget'))for(const r of a.getBudgetReport(pid||''))if(r.status==='over')rows.push({id:'budget:'+r.accountCode,title:t('budgetVsActual'),description:`${a.getAccountDisplayName(r.accountCode)} · ${a.formatNumber(r.usagePct||0,1)}%`,route:'budget'});
+ if(prefs.documents!==false&&allowed('documents'))for(const e of a.expenses.filter(e=>e.projectId===pid&&!e.documentUrl))rows.push({id:'document:'+e.id,title:t('documents'),description:e.billNumber||e.description,route:'documents'});
+ if(prefs.payments!==false&&allowed('payments'))for(const p of a.payments.filter(p=>p.projectId===pid&&isActivePosted(p)).slice(0,3))rows.push({id:'payment:'+p.id,title:t('payments'),description:`${p.partyName} · ${a.formatCurrency(effectiveAmount(p),p.currency)}`,route:'payments'});
+ return rows.slice(0,50);
+ },[a.expenses,a.apartments,a.payments,a.projectBudgets,a.currentProject?.id,a.currentUser,a.language,a.appSettings]);
+ useEffect(()=>{const ids=new Set(alerts.map(x=>x.id));if(previous.current&&prefs.browser&&'Notification'in window&&Notification.permission==='granted'){
+ const time=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kabul',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date());const quiet=prefs.quietStart&&prefs.quietEnd&&(prefs.quietStart<prefs.quietEnd?time>=prefs.quietStart&&time<prefs.quietEnd:time>=prefs.quietStart||time<prefs.quietEnd);
+ if(!quiet)for(const alert of alerts.filter(x=>!previous.current!.has(x.id)).slice(0,3))navigator.serviceWorker?.ready.then(reg=>reg.showNotification(alert.title,{body:alert.description,tag:alert.id})).catch(()=>{});
+ }previous.current=ids;},[alerts,prefs.browser]);
+ return {alerts,unread:alerts.filter(x=>!seen.includes(x.id)).length,markAll:()=>{const keys=[...new Set([...seen,...alerts.map(x=>x.id)])].slice(-2500);setSeen(keys);try{localStorage.setItem(scope,JSON.stringify(keys));}catch{}window.dispatchEvent(new Event('nsc-notifications-read'));}};
+}
+export function Notifications({navigate}:{navigate:(id:string)=>void}){const {alerts,markAll}=useAlerts(),t=useText();return <section className="nsc-page"><div className="nsc-page-heading"><h1>{t('notifications')}</h1><button className="nsc-button secondary" onClick={markAll}>{t('markRead')}</button></div><div className="nsc-card nsc-settings-card">{alerts.map(n=><button className="nsc-notification-row" key={n.id} onClick={()=>navigate(n.route)}><strong>{n.title}</strong><span>{n.description}</span></button>)}{!alerts.length&&<div className="nsc-empty">{t('noNotifications')}</div>}</div></section>;}

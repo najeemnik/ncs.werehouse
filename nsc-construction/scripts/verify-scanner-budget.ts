@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {initialQuad,validQuad,perspectiveMatrix,perspectivePoint,scanSize,imageDimensions} from '../src/modern/scannerMath';
+import {imagePdf} from '../src/modern/scanPdf';
+import {budgetComponentsTotal,type BudgetComponent} from '../src/modern/budgetMath';
+import {defaultTemplate,validTemplate,fillDocumentText} from '../src/modern/documentTemplates';
+import {CHART_OF_ACCOUNTS,getAncestorCodes,resolveExpenseAccount} from '../src/data/chartOfAccounts';
+let count=0;const check=(v:boolean,n:string)=>{assert(v,n);count++;};
+for(const value of ['constructor','__proto__','toString'])check(resolveExpenseAccount(value)==='5990','inherited names do not resolve to accounting objects');check(resolveExpenseAccount({} as any)==='5990','malformed legacy categories cannot crash the dashboard');
+const quad=initialQuad();check(validQuad(quad),'valid corners');check(!validQuad([quad[0],quad[2],quad[1],quad[3]]),'crossed corners rejected');check(!validQuad([{x:0,y:0},{x:0,y:0},{x:1,y:1},{x:0,y:1}]),'collapsed corners rejected');
+for(const q of [quad,[{x:.1,y:.2},{x:.8,y:.1},{x:.95,y:.9},{x:.05,y:.8}] as typeof quad]){const matrix=perspectiveMatrix(q);for(const [i,u,v] of [[0,0,0],[1,1,0],[2,1,1],[3,0,1]]){const p=perspectivePoint(matrix,u,v);check(Math.abs(p.x-q[i].x)<1e-9&&Math.abs(p.y-q[i].y)<1e-9,'all corners map exactly');}}
+check(scanSize(quad,4000,3000).width===2000,'scan pixel bounds');check(imageDimensions(new Uint8Array([1,2]).buffer,'image/jpeg')===null,'invalid image rejected');
+const fakeJpeg=new Uint8Array([255,216,255,225,0,34,69,120,105,102,0,0,73,73,42,0,8,0,0,0,1,0,18,1,3,0,1,0,0,0,6,0,0,0,0,0,0,0,255,192,0,17,8,0,100,0,200,3,1,17,0,2,17,0,3,17,0,255,217]);
+check(imageDimensions(fakeJpeg.buffer,'image/jpeg')?.width===100&&imageDimensions(fakeJpeg.buffer,'image/jpeg')?.height===200,'iPhone orientation swaps dimensions');
+const pdf=imagePdf(new Uint8Array([255,216,1,2,255,217]),200,300),bytes=new Uint8Array(await pdf.arrayBuffer()),text=new TextDecoder().decode(bytes);check(text.startsWith('%PDF-1.4'),'valid PDF header');check(text.includes('/Subtype /Image')&&text.endsWith('%%EOF\n'),'image PDF complete');const xref=Number(text.match(/startxref\n(\d+)/)?.[1]);check(new TextDecoder().decode(bytes.slice(xref,xref+4))==='xref','binary PDF xref offset exact');
+const base:BudgetComponent={id:'a',accountCode:'5310',description:'',unit:'bag',quantity:2,unitPrice:350,currency:'AFN'};check(budgetComponentsTotal([base,{...base,id:'b',quantity:3,unitPrice:2.35,currency:'USD'}],70)===17.05,'mixed-currency components summed accurately');assert.throws(()=>budgetComponentsTotal([{...base,quantity:-1}],70));count++;assert.throws(()=>budgetComponentsTotal([base],0));count++;
+check(validTemplate(defaultTemplate),'default template accepted');check(!validTemplate({...defaultTemplate,hidden:['itemsBlock']}),'mandatory financial block cannot be hidden');check(!validTemplate({...defaultTemplate,html:'<script>alert(1)</script>'}),'raw executable template rejected');check(!validTemplate({...defaultTemplate,accent:'url(https://bad.test)'}),'CSS URL rejected');check(fillDocumentText('{{company}} {{amount}} {{unknown}}',{company:'Test',amount:'$10'})==='Test $10 {{unknown}}','only approved fields bound');
+check(new Set(CHART_OF_ACCOUNTS.map(a=>a.code)).size===CHART_OF_ACCOUNTS.length,'account codes unique');for(const account of CHART_OF_ACCOUNTS){const parents=getAncestorCodes(account.code);check(!parents.includes(account.code),'account tree acyclic');if(account.parentCode)check(CHART_OF_ACCOUNTS.some(a=>a.code===account.parentCode),'account parent exists');}
+console.log(`${count} scanner, PDF, budget, template security and account hierarchy checks passed.`);

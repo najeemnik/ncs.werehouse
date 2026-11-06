@@ -1,0 +1,7 @@
+import {imageDimensions} from './scannerMath';
+export async function rasterImage(file:File,logo=false):Promise<string>{
+ if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>10485760)throw Error('Invalid image');const d=imageDimensions(await file.arrayBuffer(),file.type);if(!d||d.width<1||d.height<1||d.width*d.height>60000000)throw Error('Invalid image');
+ const scale=Math.min(1,(logo?512:1600)/Math.max(d.width,d.height)),bitmap=await createImageBitmap(file,{imageOrientation:'from-image',resizeWidth:Math.max(1,Math.round(d.width*scale)),resizeHeight:Math.max(1,Math.round(d.height*scale))});
+ const canvas=document.createElement('canvas');canvas.width=bitmap.width;canvas.height=bitmap.height;const ctx=canvas.getContext('2d')!;if(!logo){ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);}ctx.drawImage(bitmap,0,0);bitmap.close();
+ let result=canvas.toDataURL(logo?'image/png':'image/jpeg',.85);if(logo)while(result.length>65000&&canvas.width>100&&canvas.height>100){const next=document.createElement('canvas');next.width=Math.round(canvas.width*.8);next.height=Math.round(canvas.height*.8);next.getContext('2d')!.drawImage(canvas,0,0,next.width,next.height);canvas.width=next.width;canvas.height=next.height;canvas.getContext('2d')!.drawImage(next,0,0);result=canvas.toDataURL('image/png');}for(let q=.7;!logo&&result.length>(logo?65000:700000)&&q>=.3;q-=.1)result=canvas.toDataURL('image/jpeg',q);if(result.length>(logo?65000:700000))throw Error('Image too complex');return result;
+}

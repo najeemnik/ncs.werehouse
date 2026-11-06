@@ -1,0 +1,9 @@
+# syntax=docker/dockerfile:1
+FROM php:8.3-cli-bookworm@sha256:6e25fbb304ba6641eb4d2a53e92bea8eeba8c0d0eabf6ca41d0f1ac3b21a9ef0
+RUN --mount=type=secret,id=proxy_ca,required=true \
+    apt-get -o Acquire::https::CaInfo=/run/secrets/proxy_ca update \
+    && apt-get -o Acquire::https::CaInfo=/run/secrets/proxy_ca install -y --no-install-recommends libfreetype6-dev libjpeg62-turbo-dev libpng-dev libwebp-dev libonig-dev libcurl4-openssl-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install -j2 pdo_mysql gd mbstring curl \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /app

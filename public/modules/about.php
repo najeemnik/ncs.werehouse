@@ -1,0 +1,8 @@
+<?php
+require_once __DIR__.'/../includes/auth.php';auth_require();$pageTitle=__t('About','دربارهٔ نرم‌افزار','د پروګرام په اړه');require __DIR__.'/../includes/header.php';
+?>
+<section class="card modern-form" style="max-width:900px;margin-inline:auto"><img src="<?= sanitize(brand_full_logo_url()) ?>" alt="Nik Smart Count" style="max-width:260px;width:100%"><h1>Nik Smart Count</h1><p><?= __t('Warehousing and business management for independent businesses and their branches.','گدام‌داری و مدیریت تجارت برای مالکین و شعبه‌های‌شان.','د سوداګریو او څانګو مدیریت.') ?></p><p><?= __t('Version','نسخه','نسخه') ?> <?= sanitize(APP_VERSION) ?></p>
+<h2><?= __t('Developer & system designer','سازنده و طراح سیستم','د سیستم جوړونکی') ?></h2><h3><?= __t('Ahmad Najeem Nik','احمد نجیم نیک','احمد نجیم نیک') ?></h3><p><a href="tel:+93783788278" dir="ltr">+93 783 788 278</a> · <a href="https://wa.me/93783788278" target="_blank" rel="noopener noreferrer">WhatsApp</a></p>
+<?php $email=runtime_value('NIKXOR_SUPPORT_EMAIL')?:get_setting('developer_email','');if(filter_var($email,FILTER_VALIDATE_EMAIL)):?><p><a href="mailto:<?= sanitize($email) ?>"><?= sanitize($email) ?></a></p><?php endif ?>
+<p><?= __t('For support, include the application version and a description of the issue. Never send passwords or unencrypted backups.','برای کمک، نسخهٔ برنامه و شرح مشکل را بفرستید؛ رمزها و بکاپ بدون رمز را نفرستید.','د مرستې لپاره نسخه او ستونزه ولیکئ؛ رمزونه مه لېږئ.') ?></p><footer>© <?= date('Y') ?> <?= __t('Ahmad Najeem Nik. All rights reserved.','احمد نجیم نیک. تمام حقوق محفوظ است.','احمد نجیم نیک. ټول حقوق خوندي دي.') ?></footer></section>
+<?php require __DIR__.'/../includes/footer.php'; ?>

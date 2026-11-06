@@ -1,0 +1,8 @@
+<?php
+function migrate_partner_reviews(PDO $db): void {
+ if($db->query("SELECT version FROM schema_migrations WHERE version='016_partner_reviews'")->fetchColumn())return;$sqlite=$db->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite';$ddlSuffix=$db->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite'?'':' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci';$pk=$sqlite?'INTEGER PRIMARY KEY AUTOINCREMENT':'INT AUTO_INCREMENT PRIMARY KEY';
+ $db->exec("CREATE TABLE IF NOT EXISTS partner_profit_reviews (id $pk,shop_id INT NOT NULL,contract_id INT NOT NULL,request_key VARCHAR(64) NOT NULL,content_hash VARCHAR(64) NOT NULL,previous_profit DECIMAL(20,2) NOT NULL,verified_profit DECIMAL(20,2) NOT NULL,review_note TEXT NOT NULL,created_by INT NOT NULL,created_at DATETIME DEFAULT CURRENT_TIMESTAMP,UNIQUE(shop_id,request_key))$ddlSuffix");
+ $db->exec("CREATE TABLE IF NOT EXISTS partnership_purchase_reviews (id $pk,shop_id INT NOT NULL,purchase_id INT NOT NULL,contract_id INT NOT NULL,contract_hash VARCHAR(64) NOT NULL,review_note TEXT NOT NULL,created_by INT NOT NULL,created_at DATETIME DEFAULT CURRENT_TIMESTAMP,UNIQUE(shop_id,purchase_id,contract_id))$ddlSuffix");
+ $cols=$sqlite?array_column($db->query('PRAGMA table_info(inventory_transfers)')->fetchAll(),'name'):array_column($db->query('SHOW COLUMNS FROM inventory_transfers')->fetchAll(),'Field');foreach(['ownership_review'=>'TEXT NULL','ownership_hash'=>'VARCHAR(64) NULL','ownership_reviewed_by'=>'INT NULL'] as $column=>$type)if(!in_array($column,$cols,true))$db->exec("ALTER TABLE inventory_transfers ADD COLUMN $column $type");
+ $db->exec("INSERT INTO schema_migrations (version) VALUES ('016_partner_reviews')");
+}

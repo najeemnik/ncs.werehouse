@@ -1,0 +1,8 @@
+<?php
+if(getenv('NIKXOR_TEST_MODE')!=='1'||PHP_SAPI!=='cli')throw new RuntimeException('Synthetic fixtures only.');
+require __DIR__.'/../public/includes/management_service.php';$file=getenv('NIKXOR_HTTP_FIXTURE_FILE')?:'/data/accounts.json';$a=json_decode(file_get_contents($file),true,32,JSON_THROW_ON_ERROR);$q=$pdo->prepare('SELECT * FROM users WHERE id=? AND username=?');$q->execute([$a['owner']['id'],$a['owner']['username']]);$u=$q->fetch();if(!$u||!security_password_matches($a['owner']['password'],$u['password']))throw new RuntimeException('Synthetic fixture account does not match this DB.');security_establish_session($u);
+$pdo->prepare("INSERT INTO mudaraba_contracts (shop_id,partner_name,project_title,capital_amount,total_sales_amount,total_profit_amount,paid_profit_to_partner,returned_capital,partner_profit_rate,shop_profit_rate,currency_code,status,profit_known) VALUES (?,'Browser partner','HTTP settlement test',0,0,0,0,0,50,50,'AFN','active',1)")->execute([shop_id()]);$contract=(int)$pdo->lastInsertId();$path=getenv('NIKXOR_WORKFLOW_FIXTURE_FILE')?:'/data/phase3-browser-ids.json';file_put_contents($path,json_encode(['contract_id'=>$contract],JSON_THROW_ON_ERROR));chmod($path,0600);chown($path,1000);chgrp($path,1000);echo "Synthetic browser settlement contract prepared.\n";
+
+domain_save_policy('owner_user',(int)$a['staff']['id'],'customers.view',['enabled'=>'1','visibility'=>'locked','daily_limit'=>'2']);$pdo->prepare("DELETE FROM service_usage WHERE scope_type='owner_user' AND scope_id=? AND feature='customers.view'")->execute([$a['staff']['id']]);
+
+domain_save_policy('owner_user',(int)$a['staff']['id'],'sales.profit_preview',['enabled'=>'0','visibility'=>'hidden']);

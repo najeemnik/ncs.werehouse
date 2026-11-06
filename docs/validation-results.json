@@ -1,0 +1,97 @@
+{
+  "date": "2026-11-05",
+  "timezone": "Asia/Kabul",
+  "package_mode": "fresh-install-individually-keyed-htdocs",
+  "backends": {
+    "sqlite": {
+      "assertions_by_suite": {
+        "finance": 65,
+        "transfers": 39,
+        "backup-files": 41,
+        "oauth": 41,
+        "inventory": 58,
+        "purchase-returns": 57,
+        "fx": 47,
+        "corrections": 47,
+        "partnerships": 49,
+        "policies": 41,
+        "invoice-design": 62,
+        "staff-limits": 40,
+        "invoice-verification": 51,
+        "factory-reset": 49
+      },
+      "distinct_assertion_labels": 258
+    },
+    "mysql": {
+      "assertions_by_suite": {
+        "finance": 65,
+        "transfers": 39,
+        "backup-files": 41,
+        "oauth": 41,
+        "inventory": 58,
+        "purchase-returns": 57,
+        "fx": 47,
+        "corrections": 47,
+        "partnerships": 49,
+        "policies": 41,
+        "invoice-design": 62,
+        "staff-limits": 40,
+        "invoice-verification": 51,
+        "factory-reset": 49
+      },
+      "distinct_assertion_labels": 258
+    }
+  },
+  "database_server": "MariaDB 11.4 via PDO MySQL; SQLite",
+  "browser": {
+    "owner_pages_per_backend": 26,
+    "existing_transactions_per_backend": 10,
+    "finance_flows_per_backend": 6,
+    "partnership_fx_security_flows_per_backend": 11,
+    "responsive_header": {
+      "languages": [
+        "en",
+        "da",
+        "ps"
+      ],
+      "widths": [
+        320,
+        360,
+        390,
+        480,
+        640,
+        768,
+        900,
+        901,
+        1024,
+        1199,
+        1280,
+        1440
+      ]
+    },
+    "invoice_design_real_sale_and_logo_upload": "passed both backends",
+    "signed_public_qr_and_private_data_exclusion": "passed both backends",
+    "qr_independent_decode": "ZXing-C++",
+    "fresh_mariadb_installer": 7,
+    "archive_installation_verified": true
+  },
+  "live_external_services_verified": false,
+  "deployed": false,
+  "baseline_version": "2.3.0",
+  "baseline_php_syntax_files": 144,
+  "baseline_javascript_syntax_files": 17,
+  "version": "2.3.1",
+  "php_syntax_files": 147,
+  "javascript_syntax_files": 19,
+  "restricted_host": {
+    "storage_assertions": 20,
+    "real_apache_fresh_zip_install": true,
+    "unwritable_parent": true,
+    "both_actual_probe_statuses": 403,
+    "guarded_secret_http_denial": true,
+    "rule_tampering_fails_closed": true,
+    "two_businesses_and_branch_isolation": true,
+    "outside_root_migration": "passed: keys, central MFA, existing businesses/branch and decrypted settings; ownership corrected for new PHP account",
+    "live_host_installed": false
+  }
+}

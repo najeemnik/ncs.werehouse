@@ -1,0 +1,14 @@
+<?php
+require __DIR__.'/security.php';
+$centralPassword=bin2hex(random_bytes(18));$pdo->prepare('UPDATE users SET password=? WHERE id=?')->execute([password_hash($centralPassword,PASSWORD_DEFAULT),$central]);$cu=fixtureUser($central);
+security_establish_session($cu);$_SESSION['central_mfa_at']=time();
+office2_mutate('shop_employees',['csrf_token'=>csrf_token(),'shop_id'=>(string)$a1,'can_add_employees'=>'1','employee_limit'=>'12']);
+$rows=array_column(office2_shop_rows(),null,'id');check($rows[$a1]['employee_cap']===12,'Office 2 displays configured limit above three');
+for($i=0;$i<3;$i++){$pass=bin2hex(random_bytes(12));office2_mutate('create_shop_employee',['csrf_token'=>csrf_token(),'shop_id'=>(string)$a1,'current_password'=>$centralPassword,'owner_fullname'=>'Extra staff','username'=>$prefix.'extra'.$i,'password'=>$pass,'confirm_password'=>$pass]);}
+check(domain_branch_employee_count($a1)===4,'central staff creation uses configured branch cap');
+$pdo->prepare('UPDATE shops SET employee_limit=4 WHERE id=?')->execute([$a1]);$pass=bin2hex(random_bytes(12));$caught=false;try{office2_shop_action('create_shop_employee',['shop_id'=>(string)$a1,'owner_fullname'=>'Blocked','username'=>$prefix.'blocked','password'=>$pass,'confirm_password'=>$pass],[],$cu);}catch(InvalidArgumentException $e){$caught=true;}check($caught,'central staff creation rejects full assigned-branch cap');
+$else=userFixture($prefix.'else','staff',$a1);$pdo->prepare('INSERT INTO branch_memberships (user_id,shop_id) VALUES (?,?)')->execute([$else,$a2]);$pdo->prepare('UPDATE shops SET employee_limit=1 WHERE id=?')->execute([$a2]);check(domain_branch_employee_count($a2)===1,'staff assigned from another home branch count toward cap');
+$caught=false;try{management_mutate(['csrf_token'=>csrf_token(),'action'=>'edit_staff','business_id'=>$a,'user_id'=>$staff,'fullname'=>'Staff edit','status'=>'active','branch_ids'=>[$a1,$a2]]);}catch(InvalidArgumentException $e){$caught=true;}check($caught,'editing staff cannot bypass destination branch cap');
+$pdo->prepare('UPDATE shops SET can_add_employees=0 WHERE id=?')->execute([$a2]);$pdo->prepare('DELETE FROM branch_memberships WHERE shop_id=?')->execute([$a2]);$caught=false;try{management_mutate(['csrf_token'=>csrf_token(),'action'=>'edit_staff','business_id'=>$a,'user_id'=>$staff,'fullname'=>'Staff edit','status'=>'active','branch_ids'=>[$a1,$a2]]);}catch(InvalidArgumentException $e){$caught=true;}check($caught,'editing staff cannot add membership when branch staff is disabled');
+management_mutate(['csrf_token'=>csrf_token(),'action'=>'edit_staff','business_id'=>$a,'user_id'=>$staff,'fullname'=>'Existing staff renamed','status'=>'active','branch_ids'=>[$a1]]);check(fixtureUser($staff)['fullname']==='Existing staff renamed','existing member can be edited without requiring another slot');
+echo "Staff limit scenarios completed.\n";

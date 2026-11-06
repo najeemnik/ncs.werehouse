@@ -1,0 +1,56 @@
+# Nik Smart Count - Warehousing: hosting security rules (no Options lines: safe on shared/free hosts)
+<IfModule mod_autoindex.c>
+    IndexIgnore *
+</IfModule>
+# 1. Deny access to sensitive files (SQLite DB, SQL dumps, locks, logs)
+<FilesMatch "\.(sqlite|sqlite3|db|sql|lock|log|env|ini|bak|swp|nxb)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 2. Prevent direct execution or download of internal include scripts
+<FilesMatch "(database|config|installed)\.(php|lock)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# PWA: manifest + service worker (static assets only)
+<IfModule mod_mime.c>
+    AddType application/manifest+json .webmanifest
+</IfModule>
+<IfModule mod_headers.c>
+    <FilesMatch "^(sw|manifest)\.(js|webmanifest)$">
+        Header set Cache-Control "no-cache"
+    </FilesMatch>
+</IfModule>
+
+# Internal source and runtime files are never public endpoints.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^nsc-private-[a-f0-9]{24}(?:/|$) - [F,L]
+    RewriteRule ^(?:config|migrations|sessions)/ - [F,L]
+    RewriteRule ^includes/(?!change_theme\.php$|screen_lock_action\.php$) - [F,L]
+    RewriteRule (^|/)\. - [F,L]
+</IfModule>
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "same-origin"
+    Header always set Content-Security-Policy "frame-ancestors 'none'; base-uri 'self'; object-src 'none'"
+</IfModule>
+
+<FilesMatch "^INSTALL-KEY\.(php|txt)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+</FilesMatch>

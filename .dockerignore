@@ -1,0 +1,8 @@
+.git
+var
+.env
+**/*.sqlite
+**/*.nxb
+**/*.key
+public/config/hosting.php
+public/nsc-private-*

@@ -1,0 +1,26 @@
+{
+  "name": "Nik Smart Count - Warehousing",
+  "short_name": "Nik Smart Count",
+  "description": "Smart accounting and warehouse management for shops: inventory, sales, purchases, debts, customers and reports.",
+  "lang": "fa-AF",
+  "dir": "rtl",
+  "start_url": "./index.php",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#0b2545",
+  "theme_color": "#0b2545",
+  "categories": ["business", "finance", "productivity"],
+  "icons": [
+    { "src": "./uploads/branding/pwa-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./uploads/branding/pwa-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./uploads/branding/pwa-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "./uploads/branding/nik-smart-count-mark.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "New sale", "short_name": "Sale", "url": "./modules/sales.php" },
+    { "name": "Inventory", "short_name": "Inventory", "url": "./modules/stock.php" },
+    { "name": "Dashboard", "short_name": "Dashboard", "url": "./index.php" }
+  ]
+}

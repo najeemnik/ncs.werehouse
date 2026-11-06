@@ -1,0 +1,31 @@
+<?php
+/** Explicit amounts in both currencies; never silently revalue an invoice or a cash balance. */
+function fx_post(array $input): int {
+ global $pdo;domain_require('treasury.approve');$kind=(string)($input['kind']??'');if(!in_array($kind,['exchange','debt','receipt'],true))throw new InvalidArgumentException('Invalid exchange document.');domain_require($kind==='exchange'?'treasury.exchange':'treasury.fx_settle');domain_consume_exact($kind==='exchange'?'treasury.exchange':'treasury.fx_settle');
+ $source=finance_amount($input['source_amount']??0);$target=finance_amount($input['target_amount']??0);$date=finance_date((string)($input['document_date']??''));$reason=trim((string)($input['reason']??''));$request=(string)($input['request_key']??'');if(mb_strlen($reason)<3||mb_strlen($reason)>500||!preg_match('/^[a-zA-Z0-9_-]{16,64}$/D',$request))throw new InvalidArgumentException(__t('Enter a document reference or exchange agreement.','مرجع سند یا توافق تبدیل ارز را بنویسید.','د تبادلې سند یا موافقه ولیکئ.'));
+ $sourceId=(int)($input['source_account']??0);$destination=(int)($input['destination_account']??0);$debt=(int)($input['debt_id']??0);$receipt=(int)($input['receipt_id']??0);$hash=hash('sha256',json_encode([$kind,$sourceId,$destination,$debt,$receipt,$source,$target,$date,$reason],JSON_THROW_ON_ERROR));
+ return finance_atomic(function()use($pdo,$kind,$sourceId,$destination,$debt,$receipt,$source,$target,$date,$reason,$request,$hash){
+  finance_seed(shop_id());$q=$pdo->prepare('SELECT closed_until FROM financial_periods WHERE shop_id=?'.finance_lock());$q->execute([shop_id()]);$q->fetchColumn();
+  $q=$pdo->prepare('SELECT id,content_hash FROM fx_documents WHERE shop_id=? AND request_key=?');$q->execute([shop_id(),$request]);if($old=$q->fetch()){if(!hash_equals($old['content_hash'],$hash))throw new InvalidArgumentException('Exchange request reused with different content.');return (int)$old['id'];}
+  $d=null;$payment=null;$receivable=true;
+  if($kind==='exchange'){$a=funds_account($sourceId,null,true);$b=funds_account($destination,null,true);$from=$a['currency_code'];$to=$b['currency_code'];}
+  else{$q=$pdo->prepare('SELECT * FROM debts WHERE id=? AND shop_id=?'.finance_lock());$q->execute([$debt,shop_id()]);$d=$q->fetch();if(!$d)throw new RuntimeException('Debt unavailable.',403);$to=$d['currency_code'];$receivable=$d['debt_type']!=='payable';if(dec_units($target)>dec_units($d['remaining_amount']))throw new InvalidArgumentException(__t('Settlement exceeds the remaining invoice balance.','تسویه از باقی‌داری بل بیشتر است.','تصفیه له پاتې بل زیاته ده.'));
+   if($kind==='debt'){$a=funds_account($sourceId,null,true);$from=$a['currency_code'];}
+   else{if(!$receivable||empty($d['sale_id']))throw new InvalidArgumentException('A foreign sale receipt can only settle its original receivable.');$q=$pdo->prepare("SELECT * FROM fund_transactions WHERE id=? AND shop_id=? AND source_type='sale' AND source_id=? AND direction='in'".finance_lock());$q->execute([$receipt,shop_id(),$d['sale_id']]);$payment=$q->fetch();if(!$payment||$payment['currency_code']===$to)throw new InvalidArgumentException('Select the original unapplied foreign receipt.');$from=$payment['currency_code'];$q=$pdo->prepare("SELECT COALESCE(SUM(source_amount),0) FROM fx_documents WHERE shop_id=? AND kind='receipt' AND receipt_id=?");$q->execute([shop_id(),$receipt]);if(dec_units($source)>dec_units(dec_sub($payment['amount'],$q->fetchColumn())))throw new InvalidArgumentException('Allocation exceeds the unused foreign receipt.');}
+  }
+  if($from===$to)throw new InvalidArgumentException(__t('Use the same-currency settlement or transfer instead.','برای ارز یکسان، از تسویه یا انتقال عادی استفاده کنید.','د یو شان اسعارو عادي تصفیه وکاروئ.'));
+  $pdo->prepare('INSERT INTO fx_documents (shop_id,kind,request_key,content_hash,source_account,destination_account,debt_id,receipt_id,source_currency,target_currency,source_amount,target_amount,document_date,reason,created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')->execute([shop_id(),$kind,$request,$hash,$sourceId?:null,$destination?:null,$debt?:null,$receipt?:null,$from,$to,$source,$target,$date,$reason,auth_user()['id']]);$id=(int)$pdo->lastInsertId();
+  if($kind==='exchange'){funds_record($sourceId,'out',$source,'1500','fx_exchange',$id,'foreign-exchange-out-'.$id,$date,$reason);funds_record($destination,'in',$target,'1500','fx_exchange',$id,'foreign-exchange-in-'.$id,$date,$reason);}
+  else{
+   $counter=$receivable?'1100':'2000';$openingType=!empty($d['sale_id'])?'legacy_sale_opening':'debt_opening';$openingId=$d['sale_id']?:$d['id'];$originalPosted=!empty($d['sale_id'])&&finance_has('sale',$d['sale_id'],$to);
+   if(!$originalPosted&&!finance_has($openingType,$openingId,$to))finance_post($openingType,$openingId,$to,$date,'Reviewed legacy settlement opening',$receivable?[[$counter,$d['remaining_amount'],0],['3900',0,$d['remaining_amount']]]:[['3900',$d['remaining_amount'],0],[$counter,0,$d['remaining_amount']]]);
+   if($kind==='receipt')finance_post('fx_receipt',$id,$from,$date,$reason,[['2900',$source,0],['1500',0,$source]]);
+   else funds_record($sourceId,$receivable?'in':'out',$source,'1500','fx_debt',$id,'foreign-debt-payment-'.$id,$date,$reason);
+   finance_post('fx_settlement',$id,$to,$date,$reason,$receivable?[['1500',$target,0],[$counter,0,$target]]:[[$counter,$target,0],['1500',0,$target]]);
+   $paid=dec_add($d['paid_amount'],$target);$remaining=dec_sub($d['remaining_amount'],$target);$pdo->prepare('UPDATE debts SET paid_amount=?,remaining_amount=?,status=? WHERE id=? AND shop_id=?')->execute([$paid,$remaining,dec_units($remaining)===0?'تسویه':'باز',$debt,shop_id()]);
+   $pdo->prepare('INSERT INTO installments (debt_id,amount,payment_date,notes,created_by,currency_code,applied_to_balance,shop_id) VALUES (?,?,?,?,?,?,1,?)')->execute([$debt,$target,$date,$reason,auth_user()['id'],$to,shop_id()]);
+   if($receivable&&!empty($d['sale_id']))$pdo->prepare('UPDATE sales SET paid_amount=?,remaining_amount=? WHERE id=? AND shop_id=?')->execute([$paid,$remaining,$d['sale_id'],shop_id()]);
+  }
+  domain_audit('fx_document_posted','fx_document',$id,['kind'=>$kind,'source_currency'=>$from,'source_amount'=>$source,'target_currency'=>$to,'target_amount'=>$target,'agreed_rate'=>dec_div($target,$source,8)]);return $id;
+ });
+}
